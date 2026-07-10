@@ -20,6 +20,4 @@ class CharacterTokenizer:
 
     def decode(self, numbers: list[int]) -> str:
         """Inverse of encode(). Unknowns come back as '?'."""
-        return "".join(
-            "?" if n == UNKNOWN else self.vocabulary[n - 1] for n in numbers
-        )
+        return "".join("?" if n == UNKNOWN else self.vocabulary[n - 1] for n in numbers)
