@@ -1,0 +1,17 @@
+[project]
+name = "llm"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.11.0",
+    "numpy>=2.5.1",
+    "sentencepiece>=0.2.1",
+    "tensorboard>=2.21.0",
+    "torch>=2.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.15.21",
+]
