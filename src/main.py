@@ -1,23 +1,88 @@
 import logging
 
+import torch
+from torch.utils.data import DataLoader
+
+from dataset.slidingwindowdataset import SlidingWindowDataset
+from model import BigramLanguageModel
 from tokenizer import CharacterTokenizer
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+log = logging.getLogger("main")
 
-with open("datasets/basic.txt", encoding="utf-8") as f:
-    text = f.read()
+# --- Hyperparameters ---
+CONTEXT_LENGTH = 16  # how many characters the model sees at once (T)
+EMBEDDING_DIM = 32  # size of each token's vector (C)
+BATCH_SIZE = 64  # how many windows per training step (B)
+STEPS = 2000  # number of gradient updates
+LEARNING_RATE = 1e-2
 
-logging.info("Loaded %d characters", len(text))
 
-tokenizer = CharacterTokenizer(text)
+def generate(
+    model: BigramLanguageModel,
+    tokenizer: CharacterTokenizer,
+    prompt: str,
+    max_new_tokens: int,
+) -> str:
+    """Feed the prompt in, then repeatedly sample one next character."""
+    model.eval()
+    ids = torch.tensor(tokenizer.encode(prompt), dtype=torch.long)
+    with torch.no_grad():
+        for _ in range(max_new_tokens):
+            context = ids[-CONTEXT_LENGTH:].unsqueeze(0)  # (1, T)
+            logits = model(context)  # (1, T, vocab)
+            last_step = logits[0, -1]  # (vocab,) scores for the next char
+            probs = torch.softmax(last_step, dim=-1)  # scores -> probabilities
+            next_id = torch.multinomial(probs, num_samples=1)  # sample one
+            ids = torch.cat([ids, next_id])
+    return tokenizer.decode(ids.tolist())
 
-encoded = tokenizer.encode(text)
 
-logging.info("Encoded: %s", encoded)
+def main() -> None:
+    with open("datasets/basic.txt", encoding="utf-8") as f:
+        text = f.read()
 
-decoded = tokenizer.decode(encoded)
+    tokenizer = CharacterTokenizer(text)
+    log.info("Loaded %d characters, vocab size %d", len(text), tokenizer.vocab_size)
 
-logging.info("Decoded: %s", decoded)
+    # Encode the whole text once, as a tensor so dataset slices are tensors too.
+    data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
+    dataset = SlidingWindowDataset(data, CONTEXT_LENGTH)
+
+    # DataLoader batches windows together and reshuffles every pass.
+    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    model = BigramLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+
+    model.train()
+    step = 0
+    while step < STEPS:
+        for inputs, targets in loader:  # inputs, targets: (B, T)
+            logits = model(inputs)  # (B, T, vocab)
+
+            # cross_entropy wants (N, vocab) predictions and (N,) targets,
+            # so flatten the batch and time dimensions together.
+            b, t, vocab = logits.shape
+            loss = torch.nn.functional.cross_entropy(
+                logits.view(b * t, vocab), targets.reshape(b * t)
+            )
+
+            optimizer.zero_grad()
+            loss.backward()  # compute gradients
+            optimizer.step()  # nudge every weight to lower the loss
+
+            step += 1
+            if step % 100 == 0:
+                log.info("step %d/%d  loss %.4f", step, STEPS, loss.item())
+            if step >= STEPS:
+                break
+
+    log.info("Sample after training:\n%s", generate(model, tokenizer, "The ", 300))
+
+
+if __name__ == "__main__":
+    main()
