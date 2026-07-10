@@ -33,7 +33,7 @@ def generate(
     with torch.no_grad():
         for _ in range(max_new_tokens):
             context = ids[-CONTEXT_LENGTH:].unsqueeze(0)  # (1, T)
-            logits = model(context)  # (1, T, vocab)
+            logits, _ = model(context)  # (1, T, vocab)
             last_step = logits[0, -1]  # (vocab,) scores for the next char
             probs = torch.softmax(last_step, dim=-1)  # scores -> probabilities
             next_id = torch.multinomial(probs, num_samples=1)  # sample one
@@ -62,14 +62,7 @@ def main() -> None:
     step = 0
     while step < STEPS:
         for inputs, targets in loader:  # inputs, targets: (B, T)
-            logits = model(inputs)  # (B, T, vocab)
-
-            # cross_entropy wants (N, vocab) predictions and (N,) targets,
-            # so flatten the batch and time dimensions together.
-            b, t, vocab = logits.shape
-            loss = torch.nn.functional.cross_entropy(
-                logits.view(b * t, vocab), targets.reshape(b * t)
-            )
+            logits, loss = model(inputs, targets)  # (B, T, vocab)
 
             optimizer.zero_grad()
             loss.backward()  # compute gradients
