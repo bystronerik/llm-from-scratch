@@ -1,6 +1,6 @@
-datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,train_seconds,prompt_seconds,device,prompt,outcome,notes
-2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,,,,,,added multihead attention
-2026-07-11T08:22:45Z,16,64,64,5000,0.001,63520,4.569,1.7309,,,,The ,"The said. “Yes, brailer, isignal eficuke as ever acctorm 5Cathy outside on. The ‘em sols for ashed as weary is
+datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,val_loss,train_seconds,prompt_seconds,device,prompt,outcome,notes
+2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,,,,,,,added multihead attention
+2026-07-11T08:22:45Z,16,64,64,5000,0.001,63520,4.569,1.7309,,,,,The ,"The said. “Yes, brailer, isignal eficuke as ever acctorm 5Cathy outside on. The ‘em sols for ashed as weary is
 burize.
 
 Unish, tip ill inermoch it’s god Over, I’ll breadioed. “1... mamm amorth.t I ligate Hab extring said. I can Stacked
@@ -8,7 +8,7 @@ because ligh-for piedly ahat?”
 
 Go Maw. Even I don't.
 It kneous.” He",
-2026-07-11T08:24:25Z,16,64,64,5000,0.001,63520,4.569,1.6993,,,,The ,"The said. “Yes aboriled I sin’t heading the evehiad.
+2026-07-11T08:24:25Z,16,64,64,5000,0.001,63520,4.569,1.6993,,,,,The ,"The said. “Yes aboriled I sin’t heading the evehiad.
 
 
 
@@ -21,7 +21,7 @@ more at inligate Hab extrerature sperfected I can takely ligh-fointifically time
 
 “Well obver don't.
 It kntome.” He",
-2026-07-11T08:27:59Z,16,64,64,5000,0.001,63520,4.569,1.7091,,,,The ,"The said. “We're rall Do. I'm as efigures ine him, check 52 thm outside on. The ‘AEDV ""Gen team. That’s a prisue, and.
+2026-07-11T08:27:59Z,16,64,64,5000,0.001,63520,4.569,1.7091,,,,,The ,"The said. “We're rall Do. I'm as efigures ine him, check 52 thm outside on. The ‘AEDV ""Gen team. That’s a prisue, and.
 After in is plaziner we'd be it
 drivately
 four for the how
@@ -30,7 +30,7 @@ more at inligate Hab it we as pressigzy
 betweeed
 beckbobs teir. I put it again. Go as wear. What ways.
 It know have m",
-2026-07-11T08:37:56Z,16,64,64,20000,0.001,63520,4.569,1.5616,,,,The ,"The of cheet. I'm neve? If I can my cogan. I can val-
+2026-07-11T08:37:56Z,16,64,64,20000,0.001,63520,4.569,1.5616,,,,,The ,"The of cheet. I'm neve? If I can my cogan. I can val-
 figurit. I fife, but I can sure a lost to
 a long any tethat, I got a good every teennistened. “How is 20 meters, she can spect.
 
@@ -41,7 +41,7 @@ The rover.”
 
 
 “Teayy. Aaning primite. ",
-2026-07-11T08:42:46Z,16,64,64,5000,0.001,63520,4.5992,1.7042,,,,The ,"The said. “Yes anyway it. Ok, and figures, leven it.
+2026-07-11T08:42:46Z,16,64,64,5000,0.001,63520,4.5992,1.7042,,,,,The ,"The said. “Yes anyway it. Ok, and figures, leven it.
 
 Commage soluting hose’s 3,” Johazney's a head, Publer is
 beigne.
@@ -52,7 +52,7 @@ them the
 more at ines a So sure to get an speector thances. Found the recing 182
 OL02 inside with to make ways.
 It knto have m",added transformer block
-2026-07-11T08:47:05Z,16,64,64,5000,0.001,213472,4.5812,1.5149,,,,The ,"The of the
+2026-07-11T08:47:05Z,16,64,64,5000,0.001,213472,4.5812,1.5149,,,,,The ,"The of the
 I'd be gotter is expending launched as he attoma
 brought from the without blood do. It
 had pluting out to canvas.
@@ -61,7 +61,7 @@ had pluting out to canvas.
 put anyone?”
 
 “Shouldeme headsmoning. Since. Iris on the crewmate tirecture day on my easier",combined multiple transformer blocks
-2026-07-11T08:52:20Z,16,64,64,5000,0.001,213472,4.5812,1.5182,,,,The ,"The of the
+2026-07-11T08:52:20Z,16,64,64,5000,0.001,213472,4.5812,1.5182,,,,,The ,"The of the
 I'd layer to ficked space.
 
 “While can’t gatheled out from a throught on the other on their. This the check was to us. I won't be math the some case from this barely the coiletent, son of come of seford to you do it.
@@ -69,7 +69,7 @@ I'd layer to ficked space.
 Long my several: I diffed there sol pretty one.
 
 I’re fuel 850km inded, nos",
-2026-07-11T09:09:35Z,16,64,64,5000,0.001,213472,4.5812,1.5203,,,mps,The ,"The same suffore wouldn't upoing supposition bearies to driborte out a 462 quare my shit space one option as per as skivel) my piece I needed a boVer.
+2026-07-11T09:09:35Z,16,64,64,5000,0.001,213472,4.5812,1.5203,,,,mps,The ,"The same suffore wouldn't upoing supposition bearies to driborte out a 462 quare my shit space one option as per as skivel) my piece I needed a boVer.
 The crew endingor head. “Now why get at took
 to  me for the and rocksion,
 the competered a made.
@@ -78,14 +78,14 @@ the competered a made.
 stow that.
 
 I gavel person",training using mps
-2026-07-11T09:16:35Z,16,64,64,5000,0.001,213472,4.5812,1.4971,90.46,1.11,mps,The ,"The same suffort occenite up to show.
+2026-07-11T09:16:35Z,16,64,64,5000,0.001,213472,4.5812,1.4971,,90.46,1.11,mps,The ,"The same suffort occenite up to show.
 
 She’ll have 104. Norbes 711.”
 
 “Sorry,” Teddy said. “And bedroon behind? 370km. I’d really
 shortem was arouV ourlies were this other Hermes, wish angle botan in to fall 510kwh no Venkat
 the computers of my chair Time 10kwhing,” Cathy it said, “I had not to last ste",
-2026-07-11T10:10:26Z,128,256,256,5000,0.001,3241568,4.7062,0.1827,3078.93,4.98,mps,The ,"The same sleep dilog in on the rover software right now. And it's one leaving the rover and
+2026-07-11T10:10:26Z,128,256,256,5000,0.001,3241568,4.7062,0.1827,,3078.93,4.98,mps,The ,"The same sleep dilog in on the rover software right now. And it's one leaving the rover and
 trailer.
 
 One minute I was wrong. I’m coulding with both hands at the
@@ -93,7 +93,7 @@ front window.
 
 “Don’t care anything to make the dictal Airlock 2 to death
 Hermes after rover, and probably got a couple of stie. The pressuriz",
-2026-07-11T11:08:05Z,16,64,64,5000,0.001,207232,4.6047,1.5877,89.86,1.94,mps,The ,"The sample for the canvas up,
+2026-07-11T11:08:05Z,16,64,64,5000,0.001,207232,4.6047,1.5877,,89.86,1.94,mps,The ,"The sample for the canvas up,
 off. I didn't a harder to drives all
 pressure laided card at the roof panels. Opendiationaly),” Venkat saimps burizeVirlarize we less took an Here and fought at bits
 an Astively 500kwh of a ideat
@@ -102,7 +102,7 @@ stay.
 
 
 After 4te0. But I’",implemented weight tying
-2026-07-11T13:58:58Z,16,64,64,5000,0.001,239232,6.411,3.0758,91.59,3.29,mps,The ,"The MAV almost allon time eilffed them
+2026-07-11T13:58:58Z,16,64,64,5000,0.001,239232,6.411,3.0758,,91.59,3.29,mps,The ,"The MAV almost allon time eilffed them
 2 seconds fxygenas
 bedroom was
 a chemperature. That's the
@@ -128,7 +128,7 @@ Also,” Beck said. “Agodden metly,” came a phocks. “The instation sunligh
 
 Bed the face alonger, I still working those conth to get
 her sound",added BPE tokenizer with 500 merges
-2026-07-11T14:01:39Z,16,64,64,5000,0.001,220032,5.6975,2.4826,92.69,1.22,mps,The ,"The Landhicival. But
+2026-07-11T14:01:39Z,16,64,64,5000,0.001,220032,5.6975,2.4826,,92.69,1.22,mps,The ,"The Landhicival. But
 Marhines. I'll need
 Haywonder lowlyless showing few hoopes.
 
@@ -146,3 +146,47 @@ inspeculate practions).
 I was still grow can be normally little will be personal couldn't want you, I guest it.”
 
 “Uplain is most geotion ",BPE tokenizer with 200 merges
+2026-07-11T15:08:40Z,16,64,64,5000,0.001,220032,5.7161,2.6148,2.8058,92.92,1.3,mps,The ,"The Lander on an operation bowing her back on my calling with.
+
+
+
+
+
+Things are rocks so facts put! WEAUDING That’s adjust trips are of them in the rover of hundred and north
+I'm electant than
+get tank and landing still be before patter,” Letauxempor strick triangle.”
+
+“Yeah!” Lewis said. “Three back. “It’s the
+rover’s all
+find of while the trip engages 39 gressur,
+returning it."" ""No Regrams a good degree of no test.
+
+The RTG back to the
+duct infics should plike,” he said.
+
+“Commander,” she travel.
+No will overI'll be come it sateiling. I leat
+south over
+the sreach. Sure, the f",added validation eval
+2026-07-11T15:12:35Z,16,64,64,5000,0.001,220032,5.7161,2.4939,2.7745,93.54,1.16,mps,The ,"The Lander on itself,” Mitch high to the suit and should have been uree the rover.”
+
+“I’m to made a lot of warm.
+
+Easier I do it!
+
+I cut a sparker of time with
+the rover as heat they had more rovers?”
+
+“Bruce me to stay are leader will get head day's pain lifetiting
+airpered in twih today for a day and
+Lewis’s a nub-day now.
+
+And bort of full
+while a right cheers
+benter, admy, the return will be sure. So I rlaba alligg. I just had a full of spare in
+inspeculance travel like astrong attem to normally land.
+I need to ole-him?”
+
+“Weat,” Mindy said. “Te's the time, I are rover.
+
+Do when",disabled dataloader shuffle for validation

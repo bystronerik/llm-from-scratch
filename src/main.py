@@ -22,6 +22,9 @@ EMBEDDING_DIM = 64  # size of each token's vector (C)
 BATCH_SIZE = 64  # how many windows per training step (B)
 STEPS = 5000  # number of gradient updates
 LEARNING_RATE = 1e-3
+VAL_FRACTION = 0.1  # portion of the data held out for validation
+EVAL_INTERVAL = 500  # how often (in steps) to measure validation loss
+EVAL_BATCHES = 50  # how many val batches to average per measurement
 
 
 def generate(
@@ -45,6 +48,30 @@ def generate(
     return tokenizer.decode(ids.tolist())
 
 
+@torch.no_grad()
+def evaluate(
+    model: SimpleLanguageModel,
+    loader: DataLoader,
+    device: torch.device,
+    max_batches: int,
+) -> float:
+    """Average the loss over up to ``max_batches`` batches, without training."""
+    was_training = model.training
+    model.eval()
+    total_loss = 0.0
+    batches = 0
+    for inputs, targets in loader:
+        inputs, targets = inputs.to(device), targets.to(device)
+        _, loss = model(inputs, targets)
+        total_loss += loss.item()
+        batches += 1
+        if batches >= max_batches:
+            break
+    if was_training:
+        model.train()
+    return total_loss / batches if batches else float("nan")
+
+
 def main() -> None:
     torch.manual_seed(42)
 
@@ -59,10 +86,17 @@ def main() -> None:
 
     # Encode the whole text once, as a tensor so dataset slices are tensors too.
     data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
-    dataset = SlidingWindowDataset(data, CONTEXT_LENGTH)
+
+    # Hold out the tail of the data for validation
+    split = int(len(data) * (1 - VAL_FRACTION))
+    train_data, val_data = data[:split], data[split:]
+    train_dataset = SlidingWindowDataset(train_data, CONTEXT_LENGTH)
+    val_dataset = SlidingWindowDataset(val_data, CONTEXT_LENGTH)
+    log.info("Split into %d train / %d val tokens", len(train_data), len(val_data))
 
     # DataLoader batches windows together and reshuffles every pass.
-    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+    loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     model = SimpleLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM, CONTEXT_LENGTH)
     model = model.to(device)
@@ -75,6 +109,7 @@ def main() -> None:
     step = 0
     initial_loss = float("nan")
     final_loss = float("nan")
+    val_loss = float("nan")
     train_start = time.perf_counter()
     while step < STEPS:
         for inputs, targets in loader:  # inputs, targets: (B, T)
@@ -91,10 +126,19 @@ def main() -> None:
                 initial_loss = final_loss
             if step % 100 == 0:
                 log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
+            if step % EVAL_INTERVAL == 0 or step >= STEPS:
+                val_loss = evaluate(model, val_loader, device, EVAL_BATCHES)
+                log.info(
+                    "step %d/%d  train loss %.4f  val loss %.4f",
+                    step,
+                    STEPS,
+                    final_loss,
+                    val_loss,
+                )
             if step >= STEPS:
                 break
     train_seconds = time.perf_counter() - train_start
-    log.info("Training took %.2fs", train_seconds)
+    log.info("Training took %.2fs (final val loss %.4f)", train_seconds, val_loss)
 
     prompt = "The "
     prompt_start = time.perf_counter()
@@ -114,6 +158,7 @@ def main() -> None:
         num_params,
         initial_loss,
         final_loss,
+        val_loss=val_loss,
         prompt=prompt,
         outcome=outcome,
         device=str(device),
