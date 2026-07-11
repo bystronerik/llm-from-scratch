@@ -19,8 +19,8 @@ class SimpleLanguageModel(torch.nn.Module):
         super().__init__()
         self.token_embedding = Embedding(vocab_size, embedding_dim)
         self.position_embedding = Embedding(context_length, embedding_dim)
-        self.blocks = torch.nn.ModuleList(
-            [
+        self.blocks = torch.nn.Sequential(
+            *[
                 TransformerBlock(embedding_dim, num_heads)
                 for _ in range(num_transformers)
             ]
@@ -40,8 +40,7 @@ class SimpleLanguageModel(torch.nn.Module):
         pos_emb = self.position_embedding(positions)  # (T, C)
         embeddings = token_emb + pos_emb  # (B, T, C), broadcast over batch
 
-        for block in self.blocks:
-            embeddings = block(embeddings)
+        embeddings = self.blocks(embeddings)
 
         embeddings = self.ln_f(embeddings)
 
