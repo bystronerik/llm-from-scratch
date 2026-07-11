@@ -15,6 +15,7 @@ def log_result(
     final_loss: float,
     prompt: str = "",
     outcome: str = "",
+    device: str = "",
     notes: str = "",
 ) -> None:
     """Append this run's settings and result to results.csv, creating it if needed."""
@@ -25,6 +26,7 @@ def log_result(
         "num_params": num_params,
         "initial_loss": round(initial_loss, 4),
         "final_loss": round(final_loss, 4),
+        "device": device,
         "prompt": prompt,
         "outcome": outcome,
         "notes": notes,

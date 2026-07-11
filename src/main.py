@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from dataset.slidingwindowdataset import SlidingWindowDataset
+from device import get_device
 from model import SimpleLanguageModel
 from results import log_result
 from tokenizer import CharacterTokenizer
@@ -30,7 +31,8 @@ def generate(
 ) -> str:
     """Feed the prompt in, then repeatedly sample one next character."""
     model.eval()
-    ids = torch.tensor(tokenizer.encode(prompt), dtype=torch.long)
+    device = next(model.parameters()).device
+    ids = torch.tensor(tokenizer.encode(prompt), dtype=torch.long, device=device)
     with torch.no_grad():
         for _ in range(max_new_tokens):
             context = ids[-CONTEXT_LENGTH:].unsqueeze(0)  # (1, T)
@@ -44,6 +46,9 @@ def generate(
 
 def main() -> None:
     torch.manual_seed(42)
+
+    device = get_device()
+    log.info("Using device: %s", device)
 
     with open("datasets/basic.txt", encoding="utf-8") as f:
         text = f.read()
@@ -59,6 +64,7 @@ def main() -> None:
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     model = SimpleLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM, CONTEXT_LENGTH)
+    model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
     num_params = sum(p.numel() for p in model.parameters())
@@ -70,6 +76,7 @@ def main() -> None:
     final_loss = float("nan")
     while step < STEPS:
         for inputs, targets in loader:  # inputs, targets: (B, T)
+            inputs, targets = inputs.to(device), targets.to(device)
             logits, loss = model(inputs, targets)  # (B, T, vocab)
 
             optimizer.zero_grad()
@@ -103,6 +110,7 @@ def main() -> None:
         final_loss,
         prompt=prompt,
         outcome=outcome,
+        device=str(device),
     )
 
 
