@@ -4,7 +4,7 @@ import time
 import torch
 from torch.utils.data import DataLoader
 
-from dataset.slidingwindowdataset import SlidingWindowDataset
+from dataset import SlidingWindowDataset
 from device import get_device
 from model import SimpleLanguageModel
 from results import log_result
