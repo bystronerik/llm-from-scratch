@@ -85,6 +85,10 @@ def main() -> None:
             if step >= STEPS:
                 break
 
+    prompt = "The "
+    outcome = generate(model, tokenizer, prompt, 300)
+    log.info("Sample after training:\n%s", outcome)
+
     hyperparams = {
         "context_length": CONTEXT_LENGTH,
         "embedding_dim": EMBEDDING_DIM,
@@ -92,9 +96,14 @@ def main() -> None:
         "steps": STEPS,
         "learning_rate": LEARNING_RATE,
     }
-    log_result(hyperparams, num_params, initial_loss, final_loss)
-
-    log.info("Sample after training:\n%s", generate(model, tokenizer, "The ", 300))
+    log_result(
+        hyperparams,
+        num_params,
+        initial_loss,
+        final_loss,
+        prompt=prompt,
+        outcome=outcome,
+    )
 
 
 if __name__ == "__main__":

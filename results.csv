@@ -1,2 +1,32 @@
-datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,notes
-2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,added multihead attention
+datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,prompt,outcome,notes
+2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,,,added multihead attention
+2026-07-11T08:22:45Z,16,64,64,5000,0.001,63520,4.569,1.7309,The ,"The said. “Yes, brailer, isignal eficuke as ever acctorm 5Cathy outside on. The ‘em sols for ashed as weary is
+burize.
+
+Unish, tip ill inermoch it’s god Over, I’ll breadioed. “1... mamm amorth.t I ligate Hab extring said. I can Stacked
+because ligh-for piedly ahat?”
+
+Go Maw. Even I don't.
+It kneous.” He",
+2026-07-11T08:24:25Z,16,64,64,5000,0.001,63520,4.569,1.6993,The ,"The said. “Yes aboriled I sin’t heading the evehiad.
+
+
+
+
+“Cathment-fixA nside 390% so and water. That’s a prise grabl.
+
+Unlbe being away. I we're tright Oxygenable break’s no on
+them the
+more at inligate Hab extrerature sperfected I can takely ligh-fointifically time.”
+
+“Well obver don't.
+It kntome.” He",
+2026-07-11T08:27:59Z,16,64,64,5000,0.001,63520,4.569,1.7091,The ,"The said. “We're rall Do. I'm as efigures ine him, check 52 thm outside on. The ‘AEDV ""Gen team. That’s a prisue, and.
+After in is plaziner we'd be it
+drivately
+four for the how
+them the
+more at inligate Hab it we as pressigzy
+betweeed
+beckbobs teir. I put it again. Go as wear. What ways.
+It know have m",
