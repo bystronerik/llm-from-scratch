@@ -20,7 +20,7 @@ class SimpleLanguageModel(torch.nn.Module):
         self.position_embedding = Embedding(context_length, embedding_dim)
         self.blocks = torch.nn.Sequential(
             *[
-                TransformerBlock(embedding_dim, num_heads)
+                TransformerBlock(embedding_dim, context_length, num_heads)
                 for _ in range(num_transformers)
             ]
         )

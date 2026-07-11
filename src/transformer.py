@@ -10,10 +10,11 @@ class TransformerBlock(torch.nn.Module):
     def __init__(
         self,
         embedding_dim: int,
+        context_length: int,
         num_heads: int = 4,
     ):
         super().__init__()
-        self.attention = MultiHeadAttention(embedding_dim, num_heads)
+        self.attention = MultiHeadAttention(embedding_dim, num_heads, context_length)
         self.mlp = FeedForward(embedding_dim)
         self.ln_1 = LayerNorm(embedding_dim)
         self.ln_2 = LayerNorm(embedding_dim)
