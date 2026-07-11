@@ -3,6 +3,7 @@ from torch import Tensor
 
 from attention import SelfAttention
 from embedding import Embedding
+from layernorm import LayerNorm
 from linear import Linear
 from mlp import FeedForward
 
@@ -15,6 +16,9 @@ class SimpleLanguageModel(torch.nn.Module):
         self.attention = SelfAttention(embedding_dim, embedding_dim)
         self.head = Linear(embedding_dim, vocab_size)
         self.mlp = FeedForward(embedding_dim)
+        self.ln_1 = LayerNorm(embedding_dim)
+        self.ln_2 = LayerNorm(embedding_dim)
+        self.ln_f = LayerNorm(embedding_dim)
 
     def forward(
         self,
@@ -29,9 +33,12 @@ class SimpleLanguageModel(torch.nn.Module):
         embeddings = token_emb + pos_emb  # (B, T, C), broadcast over batch
 
         embeddings = embeddings + self.attention(
-            embeddings
+            self.ln_1(embeddings)
         )  # (B, T, C) mixed across tokens
-        embeddings = embeddings + self.mlp(embeddings)
+        embeddings = embeddings + self.mlp(self.ln_2(embeddings))
+
+        embeddings = self.ln_f(embeddings)
+
         logits = self.head(embeddings)
 
         loss = None
