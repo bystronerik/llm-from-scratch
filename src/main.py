@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from dataset.slidingwindowdataset import SlidingWindowDataset
-from model import BigramLanguageModel
+from model import SimpleLanguageModel
 from tokenizer import CharacterTokenizer
 
 logging.basicConfig(
@@ -22,7 +22,7 @@ LEARNING_RATE = 1e-2
 
 
 def generate(
-    model: BigramLanguageModel,
+    model: SimpleLanguageModel,
     tokenizer: CharacterTokenizer,
     prompt: str,
     max_new_tokens: int,
@@ -55,7 +55,7 @@ def main() -> None:
     # DataLoader batches windows together and reshuffles every pass.
     loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    model = BigramLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM)
+    model = SimpleLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM, CONTEXT_LENGTH)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
     model.train()

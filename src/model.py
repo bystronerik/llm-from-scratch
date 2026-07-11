@@ -1,14 +1,17 @@
 import torch
 from torch import Tensor
 
+from attention import SelfAttention
 from embedding import Embedding
 from linear import Linear
 
 
-class BigramLanguageModel(torch.nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int):
+class SimpleLanguageModel(torch.nn.Module):
+    def __init__(self, vocab_size: int, embedding_dim: int, context_length: int):
         super().__init__()
-        self.embedding = Embedding(vocab_size, embedding_dim)
+        self.token_embedding = Embedding(vocab_size, embedding_dim)
+        self.position_embedding = Embedding(context_length, embedding_dim)
+        self.attention = SelfAttention(embedding_dim, embedding_dim)
         self.head = Linear(embedding_dim, vocab_size)
 
     def forward(
@@ -16,7 +19,14 @@ class BigramLanguageModel(torch.nn.Module):
         token_ids: Tensor,
         targets: Tensor | None = None,
     ) -> tuple[Tensor, Tensor | None]:
-        embeddings = self.embedding(token_ids)
+        _, T = token_ids.shape
+
+        token_emb = self.token_embedding(token_ids)  # (B, T, C)
+        positions = torch.arange(T, device=token_ids.device)  # (T,)
+        pos_emb = self.position_embedding(positions)  # (T, C)
+        embeddings = token_emb + pos_emb  # (B, T, C), broadcast over batch
+
+        embeddings = self.attention(embeddings)  # (B, T, C) mixed across tokens
         logits = self.head(embeddings)
 
         loss = None
