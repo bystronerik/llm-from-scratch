@@ -8,7 +8,7 @@ from dataset.slidingwindowdataset import SlidingWindowDataset
 from device import get_device
 from model import SimpleLanguageModel
 from results import log_result
-from tokenizer import CharacterTokenizer
+from tokenizer import Tokenizer, BPETokenizer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,7 +26,7 @@ LEARNING_RATE = 1e-3
 
 def generate(
     model: SimpleLanguageModel,
-    tokenizer: CharacterTokenizer,
+    tokenizer: Tokenizer,
     prompt: str,
     max_new_tokens: int,
 ) -> str:
@@ -54,7 +54,7 @@ def main() -> None:
     with open("datasets/basic.txt", encoding="utf-8") as f:
         text = f.read()
 
-    tokenizer = CharacterTokenizer(text)
+    tokenizer = BPETokenizer(text, 200)
     log.info("Loaded %d characters, vocab size %d", len(text), tokenizer.vocab_size)
 
     # Encode the whole text once, as a tensor so dataset slices are tensors too.
