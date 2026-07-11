@@ -1,4 +1,5 @@
 import logging
+import time
 
 import torch
 from torch.utils.data import DataLoader
@@ -74,6 +75,7 @@ def main() -> None:
     step = 0
     initial_loss = float("nan")
     final_loss = float("nan")
+    train_start = time.perf_counter()
     while step < STEPS:
         for inputs, targets in loader:  # inputs, targets: (B, T)
             inputs, targets = inputs.to(device), targets.to(device)
@@ -91,10 +93,14 @@ def main() -> None:
                 log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
             if step >= STEPS:
                 break
+    train_seconds = time.perf_counter() - train_start
+    log.info("Training took %.2fs", train_seconds)
 
     prompt = "The "
+    prompt_start = time.perf_counter()
     outcome = generate(model, tokenizer, prompt, 300)
-    log.info("Sample after training:\n%s", outcome)
+    prompt_seconds = time.perf_counter() - prompt_start
+    log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
 
     hyperparams = {
         "context_length": CONTEXT_LENGTH,
@@ -111,6 +117,8 @@ def main() -> None:
         prompt=prompt,
         outcome=outcome,
         device=str(device),
+        train_seconds=train_seconds,
+        prompt_seconds=prompt_seconds,
     )
 
 
