@@ -3,7 +3,6 @@ from torch import Tensor
 
 from embedding import Embedding
 from layernorm import LayerNorm
-from linear import Linear
 from transformer import TransformerBlock
 
 
@@ -25,7 +24,6 @@ class SimpleLanguageModel(torch.nn.Module):
                 for _ in range(num_transformers)
             ]
         )
-        self.head = Linear(embedding_dim, vocab_size)
         self.ln_f = LayerNorm(embedding_dim)
 
     def forward(
@@ -44,7 +42,7 @@ class SimpleLanguageModel(torch.nn.Module):
 
         embeddings = self.ln_f(embeddings)
 
-        logits = self.head(embeddings)
+        logits = embeddings @ self.token_embedding.weight.T
 
         loss = None
         if targets is not None:
