@@ -15,9 +15,9 @@ log = logging.getLogger("main")
 
 # --- Hyperparameters ---
 CONTEXT_LENGTH = 16  # how many characters the model sees at once (T)
-EMBEDDING_DIM = 32  # size of each token's vector (C)
+EMBEDDING_DIM = 64  # size of each token's vector (C)
 BATCH_SIZE = 64  # how many windows per training step (B)
-STEPS = 2000  # number of gradient updates
+STEPS = 5000  # number of gradient updates
 LEARNING_RATE = 1e-2
 
 
