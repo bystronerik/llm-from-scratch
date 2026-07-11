@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-from attention import SelfAttention
+from attention import MultiHeadAttention
 from embedding import Embedding
 from layernorm import LayerNorm
 from linear import Linear
@@ -9,11 +9,17 @@ from mlp import FeedForward
 
 
 class SimpleLanguageModel(torch.nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int, context_length: int):
+    def __init__(
+        self,
+        vocab_size: int,
+        embedding_dim: int,
+        context_length: int,
+        num_heads: int = 4,
+    ):
         super().__init__()
         self.token_embedding = Embedding(vocab_size, embedding_dim)
         self.position_embedding = Embedding(context_length, embedding_dim)
-        self.attention = SelfAttention(embedding_dim, embedding_dim)
+        self.attention = MultiHeadAttention(embedding_dim, num_heads)
         self.head = Linear(embedding_dim, vocab_size)
         self.mlp = FeedForward(embedding_dim)
         self.ln_1 = LayerNorm(embedding_dim)

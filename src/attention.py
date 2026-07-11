@@ -41,3 +41,29 @@ class SelfAttention(torch.nn.Module):
 
         weights = torch.softmax(scores, dim=-1)  # (B, T, T), rows sum to 1
         return weights @ v  # (B, T, head_size)
+
+
+class MultiHeadAttention(torch.nn.Module):
+    """Several self-attention heads running in parallel.
+
+    Each head attends independently in its own subspace, so different heads
+    can specialise on different relationships. Their outputs are concatenated
+    and passed through a linear projection to mix them back together.
+    """
+
+    def __init__(self, embedding_dim: int, num_heads: int):
+        super().__init__()
+        assert embedding_dim % num_heads == 0, (
+            "embedding_dim must divide evenly into num_heads"
+        )
+        head_size = embedding_dim // num_heads
+        self.heads = torch.nn.ModuleList(
+            [SelfAttention(embedding_dim, head_size) for _ in range(num_heads)]
+        )
+        self.proj = Linear(embedding_dim, embedding_dim)  # mix the heads together
+
+    def forward(self, x: Tensor) -> Tensor:
+        # x: (B, T, C)  ->  output: (B, T, C)
+        heads = [head(x) for head in self.heads]  # num_heads x (B, T, head_size)
+        out = torch.cat(heads, dim=-1)  # (B, T, C)
+        return self.proj(out)  # (B, T, C)
