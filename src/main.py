@@ -18,7 +18,7 @@ CONTEXT_LENGTH = 16  # how many characters the model sees at once (T)
 EMBEDDING_DIM = 64  # size of each token's vector (C)
 BATCH_SIZE = 64  # how many windows per training step (B)
 STEPS = 5000  # number of gradient updates
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 1e-3
 
 
 def generate(
@@ -42,6 +42,8 @@ def generate(
 
 
 def main() -> None:
+    torch.manual_seed(42)
+
     with open("datasets/basic.txt", encoding="utf-8") as f:
         text = f.read()
 
