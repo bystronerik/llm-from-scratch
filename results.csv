@@ -1,0 +1,2 @@
+datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,notes
+2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,added multihead attention

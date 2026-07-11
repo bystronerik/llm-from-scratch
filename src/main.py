@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 
 from dataset.slidingwindowdataset import SlidingWindowDataset
 from model import SimpleLanguageModel
+from results import log_result
 from tokenizer import CharacterTokenizer
 
 logging.basicConfig(
@@ -65,6 +66,8 @@ def main() -> None:
 
     model.train()
     step = 0
+    initial_loss = float("nan")
+    final_loss = float("nan")
     while step < STEPS:
         for inputs, targets in loader:  # inputs, targets: (B, T)
             logits, loss = model(inputs, targets)  # (B, T, vocab)
@@ -74,10 +77,22 @@ def main() -> None:
             optimizer.step()  # nudge every weight to lower the loss
 
             step += 1
+            final_loss = loss.item()
+            if step == 1:
+                initial_loss = final_loss
             if step % 100 == 0:
-                log.info("step %d/%d  loss %.4f", step, STEPS, loss.item())
+                log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
             if step >= STEPS:
                 break
+
+    hyperparams = {
+        "context_length": CONTEXT_LENGTH,
+        "embedding_dim": EMBEDDING_DIM,
+        "batch_size": BATCH_SIZE,
+        "steps": STEPS,
+        "learning_rate": LEARNING_RATE,
+    }
+    log_result(hyperparams, num_params, initial_loss, final_loss)
 
     log.info("Sample after training:\n%s", generate(model, tokenizer, "The ", 300))
 
