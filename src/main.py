@@ -58,6 +58,9 @@ def main() -> None:
     model = SimpleLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM, CONTEXT_LENGTH)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
+    num_params = sum(p.numel() for p in model.parameters())
+    log.info("Parameters: %d", num_params)
+
     model.train()
     step = 0
     while step < STEPS:
