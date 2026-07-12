@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from dataset import SlidingWindowDataset
-from device import get_device
+from utils import get_device
 from model import SimpleLanguageModel
 from results import log_result
 from tokenizer import Tokenizer, BPETokenizer

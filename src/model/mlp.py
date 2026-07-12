@@ -1,6 +1,6 @@
 import torch
 
-from linear import Linear
+from .linear import Linear
 
 
 class FeedForward(torch.nn.Module):

@@ -1,9 +1,9 @@
 import torch
 from torch import Tensor
 
-from attention import MultiHeadAttention
-from layernorm import LayerNorm
-from mlp import FeedForward
+from .attention import MultiHeadAttention
+from .layernorm import LayerNorm
+from .mlp import FeedForward
 
 
 class TransformerBlock(torch.nn.Module):

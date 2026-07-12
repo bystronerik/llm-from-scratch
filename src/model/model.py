@@ -1,9 +1,9 @@
 import torch
 from torch import Tensor
 
-from embedding import Embedding
-from layernorm import LayerNorm
-from transformer import TransformerBlock
+from .embedding import Embedding
+from .layernorm import LayerNorm
+from .transformer import TransformerBlock
 
 
 class SimpleLanguageModel(torch.nn.Module):

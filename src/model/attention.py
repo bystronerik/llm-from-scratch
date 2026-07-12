@@ -3,7 +3,7 @@ import math
 import torch
 from torch import Tensor
 
-from linear import Linear
+from .linear import Linear
 
 
 class MultiHeadAttention(torch.nn.Module):
