@@ -65,6 +65,19 @@ class BPETokenizer:
         """Number of tokens, including the UNKNOWN (0) token."""
         return len(self.vocabulary) + 1
 
+    def get_state(self) -> dict:
+        """The learned state needed to reconstruct this tokenizer exactly."""
+        return {"merges": self.merges, "vocabulary": self.vocabulary}
+
+    @classmethod
+    def from_state(cls, state: dict) -> "BPETokenizer":
+        """Rebuild a tokenizer from get_state() output, skipping BPE training."""
+        obj = cls.__new__(cls)  # bypass __init__: no text to re-learn from
+        obj.merges = [tuple(pair) for pair in state["merges"]]
+        obj.vocabulary = list(state["vocabulary"])
+        obj.token_to_id = {t: i for i, t in enumerate(obj.vocabulary, start=1)}
+        return obj
+
     def _tokenize(self, text: str) -> list[str]:
         """Split text into characters, then replay the learned merges in order."""
         tokens = list(text)

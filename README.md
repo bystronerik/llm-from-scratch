@@ -1,5 +1,17 @@
 # llm demo
 
+## Checkpoints
+
+Training writes checkpoints to `checkpoints/step_{step}.pt` every
+`CHECKPOINT_INTERVAL` steps (plus once at the end). Each file holds the full
+resume state: `step`, model config, model and optimizer state dicts, the
+tokenizer state, hyperparameters, and the RNG state.
+
+```bash
+uv run python src/main.py                                        # fresh run
+uv run python src/main.py --checkpoint checkpoints/step_3000.pt  # resume exactly
+```
+
 ## Linting
 
 This project uses [ruff](https://docs.astral.sh/ruff/) (managed via [uv](https://docs.astral.sh/uv/)).

@@ -1,3 +1,4 @@
 .idea
 .venv
 NOTES.md
+checkpoints/*.pt

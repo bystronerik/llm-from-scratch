@@ -1,4 +1,6 @@
+import argparse
 import logging
+import os
 import time
 
 import torch
@@ -9,6 +11,7 @@ from utils import get_device
 from model import SimpleLanguageModel
 from results import log_result
 from tokenizer import Tokenizer, BPETokenizer
+from training.checkpoint import save_checkpoint, load_checkpoint
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,6 +28,11 @@ LEARNING_RATE = 1e-3
 VAL_FRACTION = 0.1  # portion of the data held out for validation
 EVAL_INTERVAL = 500  # how often (in steps) to measure validation loss
 EVAL_BATCHES = 50  # how many val batches to average per measurement
+NUM_HEADS = 4  # attention heads per transformer block
+NUM_TRANSFORMERS = 4  # number of stacked transformer blocks
+BPE_MERGES = 200  # how many byte-pair merges the tokenizer learns
+CHECKPOINT_INTERVAL = 1000  # save a checkpoint every N steps (plus at the end)
+CHECKPOINT_DIR = "checkpoints"  # where checkpoints are written
 
 
 def generate(
@@ -72,7 +80,52 @@ def evaluate(
     return total_loss / batches if batches else float("nan")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train the language model.")
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Resume training from this checkpoint file (e.g. checkpoints/step_1000.pt).",
+    )
+    return parser.parse_args()
+
+
+def build_model(config: dict, device: torch.device) -> SimpleLanguageModel:
+    """Construct a model from a saved config dict and move it onto `device`."""
+    model = SimpleLanguageModel(
+        config["vocab_size"],
+        config["embedding_dim"],
+        config["context_length"],
+        config["num_heads"],
+        config["num_transformers"],
+    )
+    return model.to(device)
+
+
+def make_checkpoint(
+    model: SimpleLanguageModel,
+    optimizer: torch.optim.Optimizer,
+    step: int,
+    config: dict,
+    tokenizer: BPETokenizer,
+    hyperparams: dict,
+) -> dict:
+    """Bundle everything needed to resume training exactly from this point."""
+    return {
+        "step": step,
+        "model_config": config,
+        "model_state": model.state_dict(),
+        "optimizer_state": optimizer.state_dict(),
+        "tokenizer": tokenizer.get_state(),
+        "hyperparams": hyperparams,
+        "rng_state": torch.get_rng_state(),
+    }
+
+
 def main() -> None:
+    args = parse_args()
     torch.manual_seed(42)
 
     device = get_device()
@@ -81,32 +134,69 @@ def main() -> None:
     with open("datasets/basic.txt", encoding="utf-8") as f:
         text = f.read()
 
-    tokenizer = BPETokenizer(text, 200)
+    hyperparams = {
+        "context_length": CONTEXT_LENGTH,
+        "embedding_dim": EMBEDDING_DIM,
+        "batch_size": BATCH_SIZE,
+        "steps": STEPS,
+        "learning_rate": LEARNING_RATE,
+    }
+
+    if args.checkpoint:
+        # Resume: rebuild tokenizer, model and optimizer from the saved state.
+        log.info("Resuming from checkpoint: %s", args.checkpoint)
+        ckpt = load_checkpoint(args.checkpoint)
+        tokenizer = BPETokenizer.from_state(ckpt["tokenizer"])
+        config = ckpt["model_config"]
+        hyperparams = ckpt["hyperparams"]
+        model = build_model(config, device)
+        model.load_state_dict(ckpt["model_state"])
+        optimizer = torch.optim.AdamW(
+            model.parameters(), lr=hyperparams["learning_rate"]
+        )
+        optimizer.load_state_dict(ckpt["optimizer_state"])
+        torch.set_rng_state(ckpt["rng_state"])  # continue the same random stream
+        start_step = ckpt["step"]
+        log.info("Resumed at step %d", start_step)
+    else:
+        tokenizer = BPETokenizer(text, BPE_MERGES)
+        config = {
+            "vocab_size": tokenizer.vocab_size,
+            "embedding_dim": EMBEDDING_DIM,
+            "context_length": CONTEXT_LENGTH,
+            "num_heads": NUM_HEADS,
+            "num_transformers": NUM_TRANSFORMERS,
+        }
+        model = build_model(config, device)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+        start_step = 0
+
     log.info("Loaded %d characters, vocab size %d", len(text), tokenizer.vocab_size)
 
     # Encode the whole text once, as a tensor so dataset slices are tensors too.
+    context_length = config["context_length"]
     data = torch.tensor(tokenizer.encode(text), dtype=torch.long)
 
     # Hold out the tail of the data for validation
     split = int(len(data) * (1 - VAL_FRACTION))
     train_data, val_data = data[:split], data[split:]
-    train_dataset = SlidingWindowDataset(train_data, CONTEXT_LENGTH)
-    val_dataset = SlidingWindowDataset(val_data, CONTEXT_LENGTH)
+    train_dataset = SlidingWindowDataset(train_data, context_length)
+    val_dataset = SlidingWindowDataset(val_data, context_length)
     log.info("Split into %d train / %d val tokens", len(train_data), len(val_data))
 
     # DataLoader batches windows together and reshuffles every pass.
     loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    model = SimpleLanguageModel(tokenizer.vocab_size, EMBEDDING_DIM, CONTEXT_LENGTH)
-    model = model.to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
-
     num_params = sum(p.numel() for p in model.parameters())
     log.info("Parameters: %d", num_params)
 
     model.train()
-    step = 0
+    step = start_step
+    if step >= STEPS:
+        log.info(
+            "Checkpoint already at step %d >= STEPS %d; nothing to train.", step, STEPS
+        )
     initial_loss = float("nan")
     final_loss = float("nan")
     val_loss = float("nan")
@@ -135,6 +225,15 @@ def main() -> None:
                     final_loss,
                     val_loss,
                 )
+            if step % CHECKPOINT_INTERVAL == 0 or step >= STEPS:
+                path = os.path.join(CHECKPOINT_DIR, f"step_{step}.pt")
+                save_checkpoint(
+                    make_checkpoint(
+                        model, optimizer, step, config, tokenizer, hyperparams
+                    ),
+                    path,
+                )
+                log.info("Saved checkpoint: %s", path)
             if step >= STEPS:
                 break
     train_seconds = time.perf_counter() - train_start
@@ -146,13 +245,6 @@ def main() -> None:
     prompt_seconds = time.perf_counter() - prompt_start
     log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
 
-    hyperparams = {
-        "context_length": CONTEXT_LENGTH,
-        "embedding_dim": EMBEDDING_DIM,
-        "batch_size": BATCH_SIZE,
-        "steps": STEPS,
-        "learning_rate": LEARNING_RATE,
-    }
     log_result(
         hyperparams,
         num_params,
