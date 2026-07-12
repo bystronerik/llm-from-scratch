@@ -36,6 +36,7 @@ NUM_TRANSFORMERS = 4  # number of stacked transformer blocks
 BPE_MERGES = 200  # how many byte-pair merges the tokenizer learns
 CHECKPOINT_INTERVAL = 1000  # save a checkpoint every N steps (plus at the end)
 CHECKPOINT_DIR = "checkpoints"  # where checkpoints are written
+TOKENIZER_PATH = "tokenizer.json"  # cached tokenizer; delete to retrain
 
 
 def generate(
@@ -205,7 +206,14 @@ def main() -> None:
         start_step = ckpt["step"]
         log.info("Resumed at step %d", start_step)
     else:
-        tokenizer = BPETokenizer(text, BPE_MERGES)
+        if os.path.exists(TOKENIZER_PATH):
+            log.info("Loading cached tokenizer from %s", TOKENIZER_PATH)
+            tokenizer = BPETokenizer.load(TOKENIZER_PATH)
+        else:
+            log.info("Training BPE tokenizer (%d merges)...", BPE_MERGES)
+            tokenizer = BPETokenizer(text, BPE_MERGES)
+            tokenizer.save(TOKENIZER_PATH)
+            log.info("Saved tokenizer to %s", TOKENIZER_PATH)
         config = {
             "vocab_size": tokenizer.vocab_size,
             "embedding_dim": EMBEDDING_DIM,

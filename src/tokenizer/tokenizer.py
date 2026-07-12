@@ -1,3 +1,5 @@
+import json
+import os
 from collections import Counter
 from typing import Protocol
 
@@ -77,6 +79,20 @@ class BPETokenizer:
         obj.vocabulary = list(state["vocabulary"])
         obj.token_to_id = {t: i for i, t in enumerate(obj.vocabulary, start=1)}
         return obj
+
+    def save(self, path: str) -> None:
+        """Write the learned state to `path` as JSON so training can be skipped
+        on later runs. Creates parent directories as needed."""
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.get_state(), f, ensure_ascii=False, indent=2)
+
+    @classmethod
+    def load(cls, path: str) -> "BPETokenizer":
+        """Rebuild a tokenizer from a file written by save(), skipping training."""
+        with open(path, encoding="utf-8") as f:
+            state = json.load(f)
+        return cls.from_state(state)
 
     def _tokenize(self, text: str) -> list[str]:
         """Split text into characters, then replay the learned merges in order."""
