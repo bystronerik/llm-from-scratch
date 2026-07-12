@@ -4,7 +4,6 @@ import torch
 
 from model import SimpleLanguageModel
 from tokenizer import BPETokenizer
-from training import CosineWarmupScheduler
 
 
 def get_device() -> torch.device:
@@ -35,7 +34,6 @@ def build_model(config: dict, device: torch.device) -> SimpleLanguageModel:
 def make_checkpoint(
     model: SimpleLanguageModel,
     optimizer: torch.optim.Optimizer,
-    scheduler: CosineWarmupScheduler,
     step: int,
     config: dict,
     tokenizer: BPETokenizer,
@@ -47,7 +45,6 @@ def make_checkpoint(
         "model_config": config,
         "model_state": model.state_dict(),
         "optimizer_state": optimizer.state_dict(),
-        "scheduler_state": scheduler.state_dict(),
         "tokenizer": tokenizer.get_state(),
         "hyperparams": hyperparams,
         "rng_state": torch.get_rng_state(),

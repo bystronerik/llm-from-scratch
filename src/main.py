@@ -114,9 +114,11 @@ def train(
             optimizer.zero_grad()
             loss.backward()  # compute gradients
             optimizer.step()  # nudge every weight to lower the loss
-            lr = scheduler.step()  # advance the LR schedule, apply to optimizer
 
             step += 1
+
+            lr = scheduler.step(step)  # set the LR for this step on the optimizer
+
             final_loss = loss.item()
             if step == 1:
                 initial_loss = final_loss
@@ -135,13 +137,7 @@ def train(
                 path = os.path.join(CHECKPOINT_DIR, f"step_{step}.pt")
                 save_checkpoint(
                     make_checkpoint(
-                        model,
-                        optimizer,
-                        scheduler,
-                        step,
-                        config,
-                        tokenizer,
-                        hyperparams,
+                        model, optimizer, step, config, tokenizer, hyperparams
                     ),
                     path,
                 )
@@ -205,12 +201,6 @@ def main() -> None:
             base_lr=hyperparams["learning_rate"],
             min_lr=hyperparams.get("min_lr", MIN_LR),
         )
-        if "scheduler_state" in ckpt:
-            scheduler.load_state_dict(ckpt["scheduler_state"])
-        else:
-            scheduler.last_step = ckpt[
-                "step"
-            ]  # older checkpoints predate the scheduler
         torch.set_rng_state(ckpt["rng_state"])  # continue the same random stream
         start_step = ckpt["step"]
         log.info("Resumed at step %d", start_step)

@@ -32,7 +32,6 @@ class CosineWarmupScheduler:
         self.total_steps = total_steps
         self.base_lr = base_lr
         self.min_lr = min_lr
-        self.last_step = 0  # number of step() calls so far
 
     def get_lr(self, step: int) -> float:
         """Learning rate for a 1-indexed training step."""
@@ -50,16 +49,9 @@ class CosineWarmupScheduler:
         cosine = 0.5 * (1 + math.cos(math.pi * progress))  # 1 -> 0
         return self.min_lr + (self.base_lr - self.min_lr) * cosine
 
-    def step(self) -> float:
-        """Advance one step, apply the new LR to the optimizer, and return it."""
-        self.last_step += 1
-        lr = self.get_lr(self.last_step)
+    def step(self, step: int) -> float:
+        """Apply the LR for the given step to the optimizer, and return it."""
+        lr = self.get_lr(step)
         for group in self.optimizer.param_groups:
             group["lr"] = lr
         return lr
-
-    def state_dict(self) -> dict:
-        return {"last_step": self.last_step}
-
-    def load_state_dict(self, state: dict) -> None:
-        self.last_step = state["last_step"]
