@@ -2,6 +2,9 @@ import os
 
 import torch
 
+from model import SimpleLanguageModel
+from tokenizer import BPETokenizer
+
 
 def get_device() -> torch.device:
     """Pick the best available device: Metal GPU (mps) on Apple Silicon, else CPU.
@@ -14,3 +17,35 @@ def get_device() -> torch.device:
     if torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
+
+
+def build_model(config: dict, device: torch.device) -> SimpleLanguageModel:
+    """Construct a model from a saved config dict and move it onto `device`."""
+    model = SimpleLanguageModel(
+        config["vocab_size"],
+        config["embedding_dim"],
+        config["context_length"],
+        config["num_heads"],
+        config["num_transformers"],
+    )
+    return model.to(device)
+
+
+def make_checkpoint(
+    model: SimpleLanguageModel,
+    optimizer: torch.optim.Optimizer,
+    step: int,
+    config: dict,
+    tokenizer: BPETokenizer,
+    hyperparams: dict,
+) -> dict:
+    """Bundle everything needed to resume training exactly from this point."""
+    return {
+        "step": step,
+        "model_config": config,
+        "model_state": model.state_dict(),
+        "optimizer_state": optimizer.state_dict(),
+        "tokenizer": tokenizer.get_state(),
+        "hyperparams": hyperparams,
+        "rng_state": torch.get_rng_state(),
+    }

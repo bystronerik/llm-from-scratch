@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from dataset import SlidingWindowDataset
-from utils import get_device
+from utils import get_device, build_model, make_checkpoint
 from model import SimpleLanguageModel
 from results import log_result
 from tokenizer import Tokenizer, BPETokenizer
@@ -80,6 +80,68 @@ def evaluate(
     return total_loss / batches if batches else float("nan")
 
 
+def train(
+    model: SimpleLanguageModel,
+    loader: DataLoader,
+    val_loader: DataLoader,
+    optimizer: torch.optim.Optimizer,
+    device: torch.device,
+    config: dict,
+    tokenizer: Tokenizer,
+    hyperparams: dict,
+    start_step: int,
+) -> tuple[float, float, float, float]:
+    """Run the training loop, returning (initial, final, val) loss and elapsed seconds."""
+    model.train()
+    step = start_step
+    if step >= STEPS:
+        log.info(
+            "Checkpoint already at step %d >= STEPS %d; nothing to train.", step, STEPS
+        )
+    initial_loss = float("nan")
+    final_loss = float("nan")
+    val_loss = float("nan")
+    train_start = time.perf_counter()
+    while step < STEPS:
+        for inputs, targets in loader:  # inputs, targets: (B, T)
+            inputs, targets = inputs.to(device), targets.to(device)
+            logits, loss = model(inputs, targets)  # (B, T, vocab)
+
+            optimizer.zero_grad()
+            loss.backward()  # compute gradients
+            optimizer.step()  # nudge every weight to lower the loss
+
+            step += 1
+            final_loss = loss.item()
+            if step == 1:
+                initial_loss = final_loss
+            if step % 100 == 0:
+                log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
+            if step % EVAL_INTERVAL == 0 or step >= STEPS:
+                val_loss = evaluate(model, val_loader, device, EVAL_BATCHES)
+                log.info(
+                    "step %d/%d  train loss %.4f  val loss %.4f",
+                    step,
+                    STEPS,
+                    final_loss,
+                    val_loss,
+                )
+            if step % CHECKPOINT_INTERVAL == 0 or step >= STEPS:
+                path = os.path.join(CHECKPOINT_DIR, f"step_{step}.pt")
+                save_checkpoint(
+                    make_checkpoint(
+                        model, optimizer, step, config, tokenizer, hyperparams
+                    ),
+                    path,
+                )
+                log.info("Saved checkpoint: %s", path)
+            if step >= STEPS:
+                break
+    train_seconds = time.perf_counter() - train_start
+    log.info("Training took %.2fs (final val loss %.4f)", train_seconds, val_loss)
+    return initial_loss, final_loss, val_loss, train_seconds
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train the language model.")
     parser.add_argument(
@@ -90,38 +152,6 @@ def parse_args() -> argparse.Namespace:
         help="Resume training from this checkpoint file (e.g. checkpoints/step_1000.pt).",
     )
     return parser.parse_args()
-
-
-def build_model(config: dict, device: torch.device) -> SimpleLanguageModel:
-    """Construct a model from a saved config dict and move it onto `device`."""
-    model = SimpleLanguageModel(
-        config["vocab_size"],
-        config["embedding_dim"],
-        config["context_length"],
-        config["num_heads"],
-        config["num_transformers"],
-    )
-    return model.to(device)
-
-
-def make_checkpoint(
-    model: SimpleLanguageModel,
-    optimizer: torch.optim.Optimizer,
-    step: int,
-    config: dict,
-    tokenizer: BPETokenizer,
-    hyperparams: dict,
-) -> dict:
-    """Bundle everything needed to resume training exactly from this point."""
-    return {
-        "step": step,
-        "model_config": config,
-        "model_state": model.state_dict(),
-        "optimizer_state": optimizer.state_dict(),
-        "tokenizer": tokenizer.get_state(),
-        "hyperparams": hyperparams,
-        "rng_state": torch.get_rng_state(),
-    }
 
 
 def main() -> None:
@@ -191,53 +221,17 @@ def main() -> None:
     num_params = sum(p.numel() for p in model.parameters())
     log.info("Parameters: %d", num_params)
 
-    model.train()
-    step = start_step
-    if step >= STEPS:
-        log.info(
-            "Checkpoint already at step %d >= STEPS %d; nothing to train.", step, STEPS
-        )
-    initial_loss = float("nan")
-    final_loss = float("nan")
-    val_loss = float("nan")
-    train_start = time.perf_counter()
-    while step < STEPS:
-        for inputs, targets in loader:  # inputs, targets: (B, T)
-            inputs, targets = inputs.to(device), targets.to(device)
-            logits, loss = model(inputs, targets)  # (B, T, vocab)
-
-            optimizer.zero_grad()
-            loss.backward()  # compute gradients
-            optimizer.step()  # nudge every weight to lower the loss
-
-            step += 1
-            final_loss = loss.item()
-            if step == 1:
-                initial_loss = final_loss
-            if step % 100 == 0:
-                log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
-            if step % EVAL_INTERVAL == 0 or step >= STEPS:
-                val_loss = evaluate(model, val_loader, device, EVAL_BATCHES)
-                log.info(
-                    "step %d/%d  train loss %.4f  val loss %.4f",
-                    step,
-                    STEPS,
-                    final_loss,
-                    val_loss,
-                )
-            if step % CHECKPOINT_INTERVAL == 0 or step >= STEPS:
-                path = os.path.join(CHECKPOINT_DIR, f"step_{step}.pt")
-                save_checkpoint(
-                    make_checkpoint(
-                        model, optimizer, step, config, tokenizer, hyperparams
-                    ),
-                    path,
-                )
-                log.info("Saved checkpoint: %s", path)
-            if step >= STEPS:
-                break
-    train_seconds = time.perf_counter() - train_start
-    log.info("Training took %.2fs (final val loss %.4f)", train_seconds, val_loss)
+    initial_loss, final_loss, val_loss, train_seconds = train(
+        model,
+        loader,
+        val_loader,
+        optimizer,
+        device,
+        config,
+        tokenizer,
+        hyperparams,
+        start_step,
+    )
 
     prompt = "The "
     prompt_start = time.perf_counter()
