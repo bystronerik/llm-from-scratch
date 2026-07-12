@@ -12,6 +12,7 @@ from model import SimpleLanguageModel
 from results import log_result
 from tokenizer import Tokenizer, BPETokenizer
 from training.checkpoint import save_checkpoint, load_checkpoint
+from training import CosineWarmupScheduler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,7 +25,9 @@ CONTEXT_LENGTH = 16  # how many characters the model sees at once (T)
 EMBEDDING_DIM = 64  # size of each token's vector (C)
 BATCH_SIZE = 64  # how many windows per training step (B)
 STEPS = 5000  # number of gradient updates
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-3  # peak LR reached at the end of warmup
+WARMUP_STEPS = 500  # steps to linearly ramp the LR from 0 to LEARNING_RATE
+MIN_LR = 1e-4  # LR floor the cosine decay settles to
 VAL_FRACTION = 0.1  # portion of the data held out for validation
 EVAL_INTERVAL = 500  # how often (in steps) to measure validation loss
 EVAL_BATCHES = 50  # how many val batches to average per measurement
@@ -85,6 +88,7 @@ def train(
     loader: DataLoader,
     val_loader: DataLoader,
     optimizer: torch.optim.Optimizer,
+    scheduler: CosineWarmupScheduler,
     device: torch.device,
     config: dict,
     tokenizer: Tokenizer,
@@ -110,13 +114,14 @@ def train(
             optimizer.zero_grad()
             loss.backward()  # compute gradients
             optimizer.step()  # nudge every weight to lower the loss
+            lr = scheduler.step()  # advance the LR schedule, apply to optimizer
 
             step += 1
             final_loss = loss.item()
             if step == 1:
                 initial_loss = final_loss
             if step % 100 == 0:
-                log.info("step %d/%d  loss %.4f", step, STEPS, final_loss)
+                log.info("step %d/%d  loss %.4f  lr %.2e", step, STEPS, final_loss, lr)
             if step % EVAL_INTERVAL == 0 or step >= STEPS:
                 val_loss = evaluate(model, val_loader, device, EVAL_BATCHES)
                 log.info(
@@ -130,7 +135,13 @@ def train(
                 path = os.path.join(CHECKPOINT_DIR, f"step_{step}.pt")
                 save_checkpoint(
                     make_checkpoint(
-                        model, optimizer, step, config, tokenizer, hyperparams
+                        model,
+                        optimizer,
+                        scheduler,
+                        step,
+                        config,
+                        tokenizer,
+                        hyperparams,
                     ),
                     path,
                 )
@@ -170,6 +181,8 @@ def main() -> None:
         "batch_size": BATCH_SIZE,
         "steps": STEPS,
         "learning_rate": LEARNING_RATE,
+        "warmup_steps": WARMUP_STEPS,
+        "min_lr": MIN_LR,
     }
 
     if args.checkpoint:
@@ -185,6 +198,19 @@ def main() -> None:
             model.parameters(), lr=hyperparams["learning_rate"]
         )
         optimizer.load_state_dict(ckpt["optimizer_state"])
+        scheduler = CosineWarmupScheduler(
+            optimizer,
+            warmup_steps=hyperparams.get("warmup_steps", WARMUP_STEPS),
+            total_steps=hyperparams.get("steps", STEPS),
+            base_lr=hyperparams["learning_rate"],
+            min_lr=hyperparams.get("min_lr", MIN_LR),
+        )
+        if "scheduler_state" in ckpt:
+            scheduler.load_state_dict(ckpt["scheduler_state"])
+        else:
+            scheduler.last_step = ckpt[
+                "step"
+            ]  # older checkpoints predate the scheduler
         torch.set_rng_state(ckpt["rng_state"])  # continue the same random stream
         start_step = ckpt["step"]
         log.info("Resumed at step %d", start_step)
@@ -199,6 +225,13 @@ def main() -> None:
         }
         model = build_model(config, device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+        scheduler = CosineWarmupScheduler(
+            optimizer,
+            warmup_steps=WARMUP_STEPS,
+            total_steps=STEPS,
+            base_lr=LEARNING_RATE,
+            min_lr=MIN_LR,
+        )
         start_step = 0
 
     log.info("Loaded %d characters, vocab size %d", len(text), tokenizer.vocab_size)
@@ -226,6 +259,7 @@ def main() -> None:
         loader,
         val_loader,
         optimizer,
+        scheduler,
         device,
         config,
         tokenizer,

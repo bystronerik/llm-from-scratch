@@ -1,6 +1,6 @@
-datetime,context_length,embedding_dim,batch_size,steps,learning_rate,num_params,initial_loss,final_loss,val_loss,train_seconds,prompt_seconds,device,prompt,outcome,notes
-2026-07-11T08:15:32Z,16,64,64,5000,0.001,63520,4.569,1.7056,,,,,,,added multihead attention
-2026-07-11T08:22:45Z,16,64,64,5000,0.001,63520,4.569,1.7309,,,,,The ,"The said. “Yes, brailer, isignal eficuke as ever acctorm 5Cathy outside on. The ‘em sols for ashed as weary is
+datetime,context_length,embedding_dim,batch_size,steps,learning_rate,warmup_steps,min_lr,num_params,initial_loss,final_loss,val_loss,train_seconds,prompt_seconds,device,prompt,outcome,notes
+2026-07-11T08:15:32Z,16,64,64,5000,0.001,,,63520,4.569,1.7056,,,,,,,added multihead attention
+2026-07-11T08:22:45Z,16,64,64,5000,0.001,,,63520,4.569,1.7309,,,,,The ,"The said. “Yes, brailer, isignal eficuke as ever acctorm 5Cathy outside on. The ‘em sols for ashed as weary is
 burize.
 
 Unish, tip ill inermoch it’s god Over, I’ll breadioed. “1... mamm amorth.t I ligate Hab extring said. I can Stacked
@@ -8,7 +8,7 @@ because ligh-for piedly ahat?”
 
 Go Maw. Even I don't.
 It kneous.” He",
-2026-07-11T08:24:25Z,16,64,64,5000,0.001,63520,4.569,1.6993,,,,,The ,"The said. “Yes aboriled I sin’t heading the evehiad.
+2026-07-11T08:24:25Z,16,64,64,5000,0.001,,,63520,4.569,1.6993,,,,,The ,"The said. “Yes aboriled I sin’t heading the evehiad.
 
 
 
@@ -21,7 +21,7 @@ more at inligate Hab extrerature sperfected I can takely ligh-fointifically time
 
 “Well obver don't.
 It kntome.” He",
-2026-07-11T08:27:59Z,16,64,64,5000,0.001,63520,4.569,1.7091,,,,,The ,"The said. “We're rall Do. I'm as efigures ine him, check 52 thm outside on. The ‘AEDV ""Gen team. That’s a prisue, and.
+2026-07-11T08:27:59Z,16,64,64,5000,0.001,,,63520,4.569,1.7091,,,,,The ,"The said. “We're rall Do. I'm as efigures ine him, check 52 thm outside on. The ‘AEDV ""Gen team. That’s a prisue, and.
 After in is plaziner we'd be it
 drivately
 four for the how
@@ -30,7 +30,7 @@ more at inligate Hab it we as pressigzy
 betweeed
 beckbobs teir. I put it again. Go as wear. What ways.
 It know have m",
-2026-07-11T08:37:56Z,16,64,64,20000,0.001,63520,4.569,1.5616,,,,,The ,"The of cheet. I'm neve? If I can my cogan. I can val-
+2026-07-11T08:37:56Z,16,64,64,20000,0.001,,,63520,4.569,1.5616,,,,,The ,"The of cheet. I'm neve? If I can my cogan. I can val-
 figurit. I fife, but I can sure a lost to
 a long any tethat, I got a good every teennistened. “How is 20 meters, she can spect.
 
@@ -41,7 +41,7 @@ The rover.”
 
 
 “Teayy. Aaning primite. ",
-2026-07-11T08:42:46Z,16,64,64,5000,0.001,63520,4.5992,1.7042,,,,,The ,"The said. “Yes anyway it. Ok, and figures, leven it.
+2026-07-11T08:42:46Z,16,64,64,5000,0.001,,,63520,4.5992,1.7042,,,,,The ,"The said. “Yes anyway it. Ok, and figures, leven it.
 
 Commage soluting hose’s 3,” Johazney's a head, Publer is
 beigne.
@@ -52,7 +52,7 @@ them the
 more at ines a So sure to get an speector thances. Found the recing 182
 OL02 inside with to make ways.
 It knto have m",added transformer block
-2026-07-11T08:47:05Z,16,64,64,5000,0.001,213472,4.5812,1.5149,,,,,The ,"The of the
+2026-07-11T08:47:05Z,16,64,64,5000,0.001,,,213472,4.5812,1.5149,,,,,The ,"The of the
 I'd be gotter is expending launched as he attoma
 brought from the without blood do. It
 had pluting out to canvas.
@@ -61,7 +61,7 @@ had pluting out to canvas.
 put anyone?”
 
 “Shouldeme headsmoning. Since. Iris on the crewmate tirecture day on my easier",combined multiple transformer blocks
-2026-07-11T08:52:20Z,16,64,64,5000,0.001,213472,4.5812,1.5182,,,,,The ,"The of the
+2026-07-11T08:52:20Z,16,64,64,5000,0.001,,,213472,4.5812,1.5182,,,,,The ,"The of the
 I'd layer to ficked space.
 
 “While can’t gatheled out from a throught on the other on their. This the check was to us. I won't be math the some case from this barely the coiletent, son of come of seford to you do it.
@@ -69,7 +69,7 @@ I'd layer to ficked space.
 Long my several: I diffed there sol pretty one.
 
 I’re fuel 850km inded, nos",
-2026-07-11T09:09:35Z,16,64,64,5000,0.001,213472,4.5812,1.5203,,,,mps,The ,"The same suffore wouldn't upoing supposition bearies to driborte out a 462 quare my shit space one option as per as skivel) my piece I needed a boVer.
+2026-07-11T09:09:35Z,16,64,64,5000,0.001,,,213472,4.5812,1.5203,,,,mps,The ,"The same suffore wouldn't upoing supposition bearies to driborte out a 462 quare my shit space one option as per as skivel) my piece I needed a boVer.
 The crew endingor head. “Now why get at took
 to  me for the and rocksion,
 the competered a made.
@@ -78,14 +78,14 @@ the competered a made.
 stow that.
 
 I gavel person",training using mps
-2026-07-11T09:16:35Z,16,64,64,5000,0.001,213472,4.5812,1.4971,,90.46,1.11,mps,The ,"The same suffort occenite up to show.
+2026-07-11T09:16:35Z,16,64,64,5000,0.001,,,213472,4.5812,1.4971,,90.46,1.11,mps,The ,"The same suffort occenite up to show.
 
 She’ll have 104. Norbes 711.”
 
 “Sorry,” Teddy said. “And bedroon behind? 370km. I’d really
 shortem was arouV ourlies were this other Hermes, wish angle botan in to fall 510kwh no Venkat
 the computers of my chair Time 10kwhing,” Cathy it said, “I had not to last ste",
-2026-07-11T10:10:26Z,128,256,256,5000,0.001,3241568,4.7062,0.1827,,3078.93,4.98,mps,The ,"The same sleep dilog in on the rover software right now. And it's one leaving the rover and
+2026-07-11T10:10:26Z,128,256,256,5000,0.001,,,3241568,4.7062,0.1827,,3078.93,4.98,mps,The ,"The same sleep dilog in on the rover software right now. And it's one leaving the rover and
 trailer.
 
 One minute I was wrong. I’m coulding with both hands at the
@@ -93,7 +93,7 @@ front window.
 
 “Don’t care anything to make the dictal Airlock 2 to death
 Hermes after rover, and probably got a couple of stie. The pressuriz",
-2026-07-11T11:08:05Z,16,64,64,5000,0.001,207232,4.6047,1.5877,,89.86,1.94,mps,The ,"The sample for the canvas up,
+2026-07-11T11:08:05Z,16,64,64,5000,0.001,,,207232,4.6047,1.5877,,89.86,1.94,mps,The ,"The sample for the canvas up,
 off. I didn't a harder to drives all
 pressure laided card at the roof panels. Opendiationaly),” Venkat saimps burizeVirlarize we less took an Here and fought at bits
 an Astively 500kwh of a ideat
@@ -102,7 +102,7 @@ stay.
 
 
 After 4te0. But I’",implemented weight tying
-2026-07-11T13:58:58Z,16,64,64,5000,0.001,239232,6.411,3.0758,,91.59,3.29,mps,The ,"The MAV almost allon time eilffed them
+2026-07-11T13:58:58Z,16,64,64,5000,0.001,,,239232,6.411,3.0758,,91.59,3.29,mps,The ,"The MAV almost allon time eilffed them
 2 seconds fxygenas
 bedroom was
 a chemperature. That's the
@@ -128,7 +128,7 @@ Also,” Beck said. “Agodden metly,” came a phocks. “The instation sunligh
 
 Bed the face alonger, I still working those conth to get
 her sound",added BPE tokenizer with 500 merges
-2026-07-11T14:01:39Z,16,64,64,5000,0.001,220032,5.6975,2.4826,,92.69,1.22,mps,The ,"The Landhicival. But
+2026-07-11T14:01:39Z,16,64,64,5000,0.001,,,220032,5.6975,2.4826,,92.69,1.22,mps,The ,"The Landhicival. But
 Marhines. I'll need
 Haywonder lowlyless showing few hoopes.
 
@@ -146,7 +146,7 @@ inspeculate practions).
 I was still grow can be normally little will be personal couldn't want you, I guest it.”
 
 “Uplain is most geotion ",BPE tokenizer with 200 merges
-2026-07-11T15:08:40Z,16,64,64,5000,0.001,220032,5.7161,2.6148,2.8058,92.92,1.3,mps,The ,"The Lander on an operation bowing her back on my calling with.
+2026-07-11T15:08:40Z,16,64,64,5000,0.001,,,220032,5.7161,2.6148,2.8058,92.92,1.3,mps,The ,"The Lander on an operation bowing her back on my calling with.
 
 
 
@@ -168,7 +168,7 @@ duct infics should plike,” he said.
 No will overI'll be come it sateiling. I leat
 south over
 the sreach. Sure, the f",added validation eval
-2026-07-11T15:12:35Z,16,64,64,5000,0.001,220032,5.7161,2.4939,2.7745,93.54,1.16,mps,The ,"The Lander on itself,” Mitch high to the suit and should have been uree the rover.”
+2026-07-11T15:12:35Z,16,64,64,5000,0.001,,,220032,5.7161,2.4939,2.7745,93.54,1.16,mps,The ,"The Lander on itself,” Mitch high to the suit and should have been uree the rover.”
 
 “I’m to made a lot of warm.
 
@@ -190,9 +190,12 @@ I need to ole-him?”
 “Weat,” Mindy said. “Te's the time, I are rover.
 
 Do when",disabled dataloader shuffle for validation
-2026-07-11T15:52:52Z,16,64,64,5000,0.001,219968,5.698,2.5237,2.7412,91.76,1.14,mps,The ,"The point with layers already storm. Greatives the rover as me lauth.” “Good.” Bruce space suit operationout the flight blest unscrash satellitess for the booster techs.” I made a rememantly, I detached for the bedroom pack tankm. I gave parted you and Houstons as right around and surviving to the conbits with suppliest of elest, we'm trip out of Hab landes, but they’re return why you huncriable. Pathfinder. “Come a tairied her 5.3 degree caught Hermes hads, you’ll stared at Earth.” “Yeah, mission for message trying. Maw Once the Hab’s suits. I’m really setting first",training data cleanup
-2026-07-11T16:37:20Z,16,64,64,5000,0.001,219968,5.6968,2.5619,2.7434,45.68,2.27,mps,The ,"The point from the rover counteristormal passives. If necessary terrance Bruce sighed pressed other down flightip punsely Hab with me you, I guive a wease. “We exarn't weight remainantly juddled this only around mooth and life shappened. My right now.” “How much Poook he'd read the screen.” “I had to get correce, I’m small off here.” “Hab floesh,” Mitch said. “Hermes,” Guo Ming said. “The hit latitely he worked bad room.” “Johanssen,” More suking perfected to the light. Now” to Earth.” “My suit it isn't beforing to sleep. I bounjected out the container-sighed. “Hle tell Ja.” Lewis found",made self-attention heads run in parallel
-2026-07-11T16:46:17Z,16,64,64,5000,0.001,219968,5.6968,2.5135,2.7356,45.42,0.66,mps,The ,"The picie. I made it alivest, Venkat to take I took all, and a little two vitamins. They'll Go Mitch, gashed, the bedroom has 2 polically legency from Martinez’s sark in Sol 1 and answer 20 liters of bares, we gram it it rightped it out of the which.” “Ok...” he can steal a s,” Martinez said. “As all without a Tairian Regulator anyrinll/so, and everything, they return who do hunctions. Patad. I’ll pop skind as fast. It isn't par in the per ught bavers happen; it’s abagiced, because, who discoge! And It is just say. Once the Hab-sigh door with relaxing half-se",added attention causal mask buffer
-2026-07-11T18:13:43Z,128,256,256,5000,0.001,3267840,5.723,0.123,7.3791,3178.5,4.45,mps,The ,"The picipaper from a bit of pure radio so I couldn't see anything like that."" ""Watney may still be hurt inside,"" Mitch said. ""He could have banged his head or broken an arm or something."" ""Sure,"" Bruce said. ""I'm just saying the rover is probably ok."" ""When was this taken?"" Most off"" Venkat said exploration on the trandominued superheat and more, but it’s just isn't beere designed for 12 hours of flying my solar cells and loggers weeks ago. But ok me orbital enough that we can talk to it, and standard satellite navigational software. “Team Two will deal with the payload. I can ever",
-2026-07-12T08:21:17Z,16,64,64,5000,0.001,219968,5.6968,2.5424,2.7267,45.14,0.62,mps,The ,"The picture layers. It’s not the Hab, too, the wheeluself when have to do so you think. There’s pressure opgents. The flight better. And the sample, Time gets too a weaskme to the arm in weight remain test triddle of the storm. They’ll bring it it it right. All not you levels (100 over seNASA said now all I brought that they explosions while transwec that risks off?” “Abitching, Annie only naunish decond. And that’s still. Looking her heat at that I weaking you keep them intens, use for one satalcopor.” “My suit it isn't a bad over Keep they didn’t keep my dark to life. The rover's most has nice to ",
-2026-07-12T13:03:27Z,16,64,64,10000,0.001,219968,5.6968,2.3824,2.7106,90.55,0.62,mps,The ,"The piciup. Slammittle day.” “Venkat to take an eye. The probe is harnerds so you thin’. They'll Go Ming we go flipped there. And I had a latical leg. The Natousary, taking sare cleary. The regusthy trid. It when the only are pip! No midding all the hose when I got a 100km from the heat back.” “Yeah, to get a spiral more than just stand on small right now. And we’ese think it is 63:10km too be the unide of hists ad. I’ll percule noone all her fend that I weakper fland bad was happily dissipping on Martinez. So it is, would barely die in evens, internal tay and sights. I’m reattach happened",
+2026-07-11T15:52:52Z,16,64,64,5000,0.001,,,219968,5.698,2.5237,2.7412,91.76,1.14,mps,The ,"The point with layers already storm. Greatives the rover as me lauth.” “Good.” Bruce space suit operationout the flight blest unscrash satellitess for the booster techs.” I made a rememantly, I detached for the bedroom pack tankm. I gave parted you and Houstons as right around and surviving to the conbits with suppliest of elest, we'm trip out of Hab landes, but they’re return why you huncriable. Pathfinder. “Come a tairied her 5.3 degree caught Hermes hads, you’ll stared at Earth.” “Yeah, mission for message trying. Maw Once the Hab’s suits. I’m really setting first",training data cleanup
+2026-07-11T16:37:20Z,16,64,64,5000,0.001,,,219968,5.6968,2.5619,2.7434,45.68,2.27,mps,The ,"The point from the rover counteristormal passives. If necessary terrance Bruce sighed pressed other down flightip punsely Hab with me you, I guive a wease. “We exarn't weight remainantly juddled this only around mooth and life shappened. My right now.” “How much Poook he'd read the screen.” “I had to get correce, I’m small off here.” “Hab floesh,” Mitch said. “Hermes,” Guo Ming said. “The hit latitely he worked bad room.” “Johanssen,” More suking perfected to the light. Now” to Earth.” “My suit it isn't beforing to sleep. I bounjected out the container-sighed. “Hle tell Ja.” Lewis found",made self-attention heads run in parallel
+2026-07-11T16:46:17Z,16,64,64,5000,0.001,,,219968,5.6968,2.5135,2.7356,45.42,0.66,mps,The ,"The picie. I made it alivest, Venkat to take I took all, and a little two vitamins. They'll Go Mitch, gashed, the bedroom has 2 polically legency from Martinez’s sark in Sol 1 and answer 20 liters of bares, we gram it it rightped it out of the which.” “Ok...” he can steal a s,” Martinez said. “As all without a Tairian Regulator anyrinll/so, and everything, they return who do hunctions. Patad. I’ll pop skind as fast. It isn't par in the per ught bavers happen; it’s abagiced, because, who discoge! And It is just say. Once the Hab-sigh door with relaxing half-se",added attention causal mask buffer
+2026-07-11T18:13:43Z,128,256,256,5000,0.001,,,3267840,5.723,0.123,7.3791,3178.5,4.45,mps,The ,"The picipaper from a bit of pure radio so I couldn't see anything like that."" ""Watney may still be hurt inside,"" Mitch said. ""He could have banged his head or broken an arm or something."" ""Sure,"" Bruce said. ""I'm just saying the rover is probably ok."" ""When was this taken?"" Most off"" Venkat said exploration on the trandominued superheat and more, but it’s just isn't beere designed for 12 hours of flying my solar cells and loggers weeks ago. But ok me orbital enough that we can talk to it, and standard satellite navigational software. “Team Two will deal with the payload. I can ever",
+2026-07-12T08:21:17Z,16,64,64,5000,0.001,,,219968,5.6968,2.5424,2.7267,45.14,0.62,mps,The ,"The picture layers. It’s not the Hab, too, the wheeluself when have to do so you think. There’s pressure opgents. The flight better. And the sample, Time gets too a weaskme to the arm in weight remain test triddle of the storm. They’ll bring it it it right. All not you levels (100 over seNASA said now all I brought that they explosions while transwec that risks off?” “Abitching, Annie only naunish decond. And that’s still. Looking her heat at that I weaking you keep them intens, use for one satalcopor.” “My suit it isn't a bad over Keep they didn’t keep my dark to life. The rover's most has nice to ",
+2026-07-12T13:03:27Z,16,64,64,10000,0.001,,,219968,5.6968,2.3824,2.7106,90.55,0.62,mps,The ,"The piciup. Slammittle day.” “Venkat to take an eye. The probe is harnerds so you thin’. They'll Go Ming we go flipped there. And I had a latical leg. The Natousary, taking sare cleary. The regusthy trid. It when the only are pip! No midding all the hose when I got a 100km from the heat back.” “Yeah, to get a spiral more than just stand on small right now. And we’ese think it is 63:10km too be the unide of hists ad. I’ll percule noone all her fend that I weakper fland bad was happily dissipping on Martinez. So it is, would barely die in evens, internal tay and sights. I’m reattach happened",
+2026-07-12T13:50:53Z,16,64,64,5000,0.001,100,0.0001,219968,5.6968,2.4246,2.662,47.47,0.72,mps,The ,"The NASA. I made a cower decy can added. Chapter 10 days things wereng. The regulator, Great mements, I flight the rover is underfular, Tim, I gluessing west. If I can't need to get up. To taken a big line for the bard, I went the main midrimally hose which some plants warned he'd bad, scause the bedroom cories from the whole tmanririt out right room.” “We’d have 6 months,” Venkat said. “But uncation. I hit latically he stack internoonier than the air-parcomm. Venkat That way was happening. The assembled... Aconnected. The isn't go a top had even aways. It wouldn't easier terely. The trailer fro",added learning rate scheduler
+2026-07-12T13:56:49Z,16,64,64,5000,0.001,500,0.0001,219968,5.6968,2.4146,2.6586,45.67,0.62,mps,The ,"The point with lastical to disturby passed. After so¬ days terro supplies would have a presG of the room, out the flight bles. Anyway, we can hailly gone. It's we’re room arm in weighs. I have to did by a little bar cells back. That wouldpend the rover trip. I replaced the obrover. I'm not matter exbertling the Taiyan out?Venkat should small offect rised up to fit, noby, but they’ll die you abunnation. I hit latad the life and cold. Anyway. It is, I went weaking you keep them in, “The did step she because's able to Mars. In a to the Ka time, I say the OG ENTRY: SOL 484 Air-body ",
+2026-07-12T13:59:30Z,16,64,64,10000,0.001,500,0.0001,219968,5.6968,2.2565,2.6411,93.11,0.62,mps,The ,"The picient mission before stranded on the ship’s Tuck can hold lucks so you think. There’s poG of the room, out the flight bless risks to work at the Hab, I guidance?” Mitch asked. “I made a remain two month. It which selare pieces time it it right. All never takes 40 sols as he cooling on a small adjusting exbrawithout.” Turning her Venkat. “The transwished Hab up to Hermes by the wheels that had one launched his slowed the life and bubbble to all overall and uneven can you keep them in, “The departable,” Eatt be. “This is nogged it with my chogics in ejecs. Plan with my fars to be and leaving. I moved has first",
