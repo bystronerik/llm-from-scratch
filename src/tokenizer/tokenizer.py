@@ -1,9 +1,12 @@
 import json
 import os
+import re
 from collections import Counter
 from typing import Protocol
 
 UNKNOWN = 0
+
+_CHUNK_RE = re.compile(r"\s+|\S+")
 
 
 class Tokenizer(Protocol):
@@ -20,25 +23,41 @@ class BPETokenizer:
 
     Starts from single characters and learns `num_merges` merges, each time
     fusing the most common adjacent pair into a new token.
+
+    Merges are learned and applied *within* a pre-tokenized chunk (a run of
+    whitespace or non-whitespace), never across chunk boundaries. Because
+    natural text repeats the same words, both training and encoding work over
+    the set of *unique* chunks and cache per-chunk results, so cost scales with
+    the vocabulary of the corpus rather than its raw length.
     """
 
     def __init__(self, text: str, num_merges: int):
-        tokens = list(text)
+        # Count how often each chunk occurs, and hold one token list per unique
+        # chunk. Merges below operate on this small set, weighted by frequency.
+        chunk_counts = Counter(_CHUNK_RE.findall(text))
+        chunks = {chunk: list(chunk) for chunk in chunk_counts}
+
         self.merges: list[tuple[str, str]] = []
         for _ in range(num_merges):
-            counts = Counter(zip(tokens, tokens[1:]))
+            counts: Counter = Counter()
+            for chunk, freq in chunk_counts.items():
+                tokens = chunks[chunk]
+                for pair in zip(tokens, tokens[1:]):
+                    counts[pair] += freq
             if not counts:
                 break
             pair, count = counts.most_common(1)[0]
             if count < 2:  # nothing left worth merging
                 break
             self.merges.append(pair)
-            tokens = self._merge_pair(tokens, pair)
+            for chunk in chunks:
+                chunks[chunk] = self._merge_pair(chunks[chunk], pair)
 
         # Vocabulary is every distinct token the merges can produce, plus the
         # base characters. Sorted so ids are stable across runs.
         self.vocabulary = sorted(set(text) | {a + b for a, b in self.merges})
         self.token_to_id = {t: i for i, t in enumerate(self.vocabulary, start=1)}
+        self._chunk_cache: dict[str, list[int]] = {}
 
     @property
     def vocab_size(self) -> int:
@@ -56,6 +75,7 @@ class BPETokenizer:
         obj.merges = [tuple(pair) for pair in state["merges"]]
         obj.vocabulary = list(state["vocabulary"])
         obj.token_to_id = {t: i for i, t in enumerate(obj.vocabulary, start=1)}
+        obj._chunk_cache = {}
         return obj
 
     def save(self, path: str) -> None:
@@ -92,9 +112,24 @@ class BPETokenizer:
                 i += 1
         return merged
 
+    def _encode_chunk(self, chunk: str) -> list[int]:
+        """Encode one chunk to ids, caching the result for repeated chunks."""
+        ids = self._chunk_cache.get(chunk)
+        if ids is None:
+            ids = [self.token_to_id.get(t, UNKNOWN) for t in self._tokenize(chunk)]
+            self._chunk_cache[chunk] = ids
+        return ids
+
     def encode(self, text: str) -> list[int]:
-        """Encode a string as a list of token ids. Unknown tokens map to 0."""
-        return [self.token_to_id.get(t, UNKNOWN) for t in self._tokenize(text)]
+        """Encode a string as a list of token ids. Unknown tokens map to 0.
+
+        The text is pre-split into chunks and each unique chunk is tokenized
+        once, so repeated words cost only a dictionary lookup.
+        """
+        ids: list[int] = []
+        for chunk in _CHUNK_RE.findall(text):
+            ids.extend(self._encode_chunk(chunk))
+        return ids
 
     def decode(self, numbers: list[int]) -> str:
         """Inverse of encode(). Unknowns come back as '?'."""
