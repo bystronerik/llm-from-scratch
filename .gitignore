@@ -2,3 +2,4 @@
 .venv
 NOTES.md
 checkpoints/*.pt
+datasets/tinystories.txt

@@ -6,7 +6,7 @@ import time
 import torch
 from torch.utils.data import DataLoader
 
-from dataset import SlidingWindowDataset
+from dataset import SlidingWindowDataset, load_tinystories
 from utils import get_device, build_model, make_checkpoint
 from model import SimpleLanguageModel
 from results import log_result
@@ -21,22 +21,23 @@ logging.basicConfig(
 log = logging.getLogger("main")
 
 # --- Hyperparameters ---
-CONTEXT_LENGTH = 16  # how many characters the model sees at once (T)
-EMBEDDING_DIM = 64  # size of each token's vector (C)
-BATCH_SIZE = 64  # how many windows per training step (B)
+CONTEXT_LENGTH = 64  # how many characters the model sees at once (T)
+EMBEDDING_DIM = 128  # size of each token's vector (C)
+BATCH_SIZE = 128  # how many windows per training step (B)
 STEPS = 5000  # number of gradient updates
 LEARNING_RATE = 1e-3  # peak LR reached at the end of warmup
-WARMUP_STEPS = 500  # steps to linearly ramp the LR from 0 to LEARNING_RATE
+WARMUP_STEPS = 1000  # steps to linearly ramp the LR from 0 to LEARNING_RATE
 MIN_LR = 1e-4  # LR floor the cosine decay settles to
 VAL_FRACTION = 0.1  # portion of the data held out for validation
 EVAL_INTERVAL = 500  # how often (in steps) to measure validation loss
 EVAL_BATCHES = 50  # how many val batches to average per measurement
 NUM_HEADS = 4  # attention heads per transformer block
-NUM_TRANSFORMERS = 4  # number of stacked transformer blocks
-BPE_MERGES = 200  # how many byte-pair merges the tokenizer learns
+NUM_TRANSFORMERS = 6  # number of stacked transformer blocks
+BPE_MERGES = 500  # how many byte-pair merges the tokenizer learns
 CHECKPOINT_INTERVAL = 1000  # save a checkpoint every N steps (plus at the end)
 CHECKPOINT_DIR = "checkpoints"  # where checkpoints are written
 TOKENIZER_PATH = "tokenizer.json"  # cached tokenizer; delete to retrain
+NUM_STORIES = 10000  # how many TinyStories entries to concatenate into the corpus
 
 
 def generate(
@@ -169,8 +170,7 @@ def main() -> None:
     device = get_device()
     log.info("Using device: %s", device)
 
-    with open("datasets/basic.txt", encoding="utf-8") as f:
-        text = f.read()
+    text = load_tinystories(NUM_STORIES)
 
     hyperparams = {
         "context_length": CONTEXT_LENGTH,

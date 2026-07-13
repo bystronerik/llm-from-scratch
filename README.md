@@ -1,5 +1,13 @@
 # llm demo
 
+## Dataset
+
+Training data comes from the [TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories)
+dataset via HuggingFace Datasets. The first `NUM_STORIES` entries are
+concatenated (one story per line) into a single corpus. On the first run the
+slice is downloaded and cached to `datasets/tinystories.txt`; later runs read
+that file directly.
+
 ## Checkpoints
 
 Training writes checkpoints to `checkpoints/step_{step}.pt` every
