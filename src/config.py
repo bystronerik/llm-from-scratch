@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 
 
@@ -29,10 +30,25 @@ class Config:
     eval_interval: int = 500  # how often (in steps) to measure validation loss
     eval_batches: int = 50  # how many val batches to average per measurement
 
-    # --- Checkpointing ---
-    checkpoint_interval: int = 1000  # save a checkpoint every N steps (plus at the end)
-    checkpoint_dir: str = "checkpoints"  # where checkpoints are written
+    # --- Paths ---
+    # Everything under cache_dir is reproducible run cache: safe to delete, gitignored.
+    # tokenizer.json stays versioned in the repo root — delete it to retrain the BPE.
+    cache_dir: str = (
+        ".cache"  # root for all throwaway run output (datasets, checkpoints)
+    )
+    run_id: str = ""  # per-run subdir under checkpoints/; set once in build_run()
     tokenizer_path: str = "tokenizer.json"  # cached tokenizer; delete to retrain
+    checkpoint_interval: int = 1000  # save a checkpoint every N steps (plus at the end)
+
+    @property
+    def dataset_path(self) -> str:
+        """Where the downloaded TinyStories corpus is cached."""
+        return os.path.join(self.cache_dir, "datasets", "tinystories.txt")
+
+    @property
+    def checkpoint_dir(self) -> str:
+        """This run's checkpoint directory: .cache/checkpoints/<run_id>."""
+        return os.path.join(self.cache_dir, "checkpoints", self.run_id)
 
     def log_fields(self) -> dict:
         """The subset of settings recorded as columns in results.csv."""

@@ -8,6 +8,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
         metavar="PATH",
-        help="Resume training from this checkpoint file (e.g. checkpoints/step_1000.pt).",
+        help="Resume from a checkpoint file (e.g. .cache/checkpoints/20260713-213500/step_1000.pt).",
     )
     return parser.parse_args()

@@ -1,5 +1,7 @@
 .idea
 .venv
+
+.cache/
+
+.DS_Store
 NOTES.md
-checkpoints/*.pt
-datasets/tinystories.txt

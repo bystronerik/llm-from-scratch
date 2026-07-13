@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from dataclasses import dataclass
 
 import torch
@@ -29,6 +30,11 @@ class RunState:
     start_step: int
 
 
+def _new_run_id() -> str:
+    """A sortable, human-readable id unique to this process's start time."""
+    return time.strftime("%Y%m%d-%H%M%S")
+
+
 def _build_optimizer_and_scheduler(
     config: Config, model: SimpleLanguageModel
 ) -> tuple[torch.optim.Optimizer, CosineWarmupScheduler]:
@@ -49,8 +55,11 @@ def resume_run(path: str, device: torch.device) -> RunState:
     log.info("Resuming from checkpoint: %s", path)
     ckpt = load_checkpoint(path)
     config = ckpt["config"]
+    config.run_id = (
+        _new_run_id()
+    )  # a fresh run dir, so we never overwrite the source run
     tokenizer = BPETokenizer.from_state(ckpt["tokenizer"])
-    text = load_tinystories(config.num_stories)
+    text = load_tinystories(config.num_stories, config.dataset_path)
 
     model = build_model(config, device)
     model.load_state_dict(ckpt["model_state"])
@@ -65,8 +74,8 @@ def resume_run(path: str, device: torch.device) -> RunState:
 
 def build_run(device: torch.device) -> RunState:
     """Start fresh: load the corpus, (re)build the tokenizer and a new model."""
-    config = Config()
-    text = load_tinystories(config.num_stories)
+    config = Config(run_id=_new_run_id())
+    text = load_tinystories(config.num_stories, config.dataset_path)
 
     if os.path.exists(config.tokenizer_path):
         log.info("Loading cached tokenizer from %s", config.tokenizer_path)

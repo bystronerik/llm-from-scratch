@@ -4,7 +4,7 @@ import os
 log = logging.getLogger("dataset.tinystories")
 
 HF_DATASET = "roneneldan/TinyStories"
-DEFAULT_CACHE_PATH = "datasets/tinystories.txt"
+DEFAULT_CACHE_PATH = ".cache/datasets/tinystories.txt"
 
 
 def load_tinystories(num_stories: int, cache_path: str = DEFAULT_CACHE_PATH) -> str:

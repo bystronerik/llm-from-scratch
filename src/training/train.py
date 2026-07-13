@@ -66,7 +66,9 @@ def train(
                     val_loss,
                 )
             if step % config.checkpoint_interval == 0 or step >= config.steps:
-                path = os.path.join(config.checkpoint_dir, f"step_{step}.pt")
+                path = os.path.join(
+                    config.checkpoint_dir, f"step_{step}.pt"
+                )  # .cache/checkpoints/<run_id>/
                 save_checkpoint(
                     make_checkpoint(model, optimizer, step, config, tokenizer),
                     path,
