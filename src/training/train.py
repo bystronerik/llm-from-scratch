@@ -43,6 +43,9 @@ def train(
 
             optimizer.zero_grad()
             loss.backward()  # compute gradients
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_norm=1.0
+            )  # clip gradients to stabilize training
             optimizer.step()  # nudge every weight to lower the loss
 
             step += 1
