@@ -21,6 +21,12 @@ class Config:
     warmup_steps: int = 1000  # steps to linearly ramp the LR from 0 to learning_rate
     min_lr: float = 1e-4  # LR floor the cosine decay settles to
 
+    # --- Sampling (post-training text generation) ---
+    max_new_tokens: int = 300  # how many tokens to generate for the sample
+    temperature: float = 1.0  # <1 sharpens, >1 flattens; 0 = greedy (argmax)
+    top_k: int | None = None  # keep only the k most likely tokens, or None
+    top_p: float | None = None  # keep the smallest nucleus summing to p, or None
+
     # --- Data / evaluation ---
     num_stories: int = (
         100000  # how many TinyStories entries to concatenate into the corpus

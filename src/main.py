@@ -47,7 +47,16 @@ def main() -> None:
 
     prompt = "The "
     prompt_start = time.perf_counter()
-    outcome = generate(run.model, run.tokenizer, prompt, 300, run.config.context_length)
+    outcome = generate(
+        run.model,
+        run.tokenizer,
+        prompt,
+        run.config.max_new_tokens,
+        run.config.context_length,
+        temperature=run.config.temperature,
+        top_k=run.config.top_k,
+        top_p=run.config.top_p,
+    )
     prompt_seconds = time.perf_counter() - prompt_start
     log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
 
