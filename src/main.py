@@ -4,7 +4,7 @@ import time
 import torch
 
 from cli import parse_args
-from dataset import build_dataloaders
+from dataset import build_dataloaders, encode_corpus
 from inference import generate
 from results import log_result
 from training import build_run, resume_run, train
@@ -29,8 +29,7 @@ def main() -> None:
         "Loaded %d characters, vocab size %d", len(run.text), run.tokenizer.vocab_size
     )
 
-    # Encode the whole corpus once, as a tensor so dataset slices are tensors too.
-    data = torch.tensor(run.tokenizer.encode(run.text), dtype=torch.long)
+    data = encode_corpus(run.tokenizer, run.text, run.config.cache_dir)
     loader, val_loader = build_dataloaders(
         data, run.config.context_length, run.config.batch_size, run.config.val_fraction
     )
