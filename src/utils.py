@@ -27,6 +27,7 @@ def build_model(config: dict, device: torch.device) -> SimpleLanguageModel:
         config["context_length"],
         config["num_heads"],
         config["num_transformers"],
+        config["dropout"],
     )
     return model.to(device)
 

@@ -33,6 +33,7 @@ EVAL_INTERVAL = 500  # how often (in steps) to measure validation loss
 EVAL_BATCHES = 50  # how many val batches to average per measurement
 NUM_HEADS = 4  # attention heads per transformer block
 NUM_TRANSFORMERS = 6  # number of stacked transformer blocks
+DROPOUT = 0.1  # fraction of activations zeroed each step; raise if val >> train
 BPE_MERGES = 500  # how many byte-pair merges the tokenizer learns
 CHECKPOINT_INTERVAL = 1000  # save a checkpoint every N steps (plus at the end)
 CHECKPOINT_DIR = "checkpoints"  # where checkpoints are written
@@ -47,7 +48,8 @@ def generate(
     max_new_tokens: int,
 ) -> str:
     """Feed the prompt in, then repeatedly sample one next character."""
-    model.eval()
+    was_training = model.training
+    model.eval()  # disable dropout while sampling
     device = next(model.parameters()).device
     ids = torch.tensor(tokenizer.encode(prompt), dtype=torch.long, device=device)
     with torch.no_grad():
@@ -58,6 +60,8 @@ def generate(
             probs = torch.softmax(last_step, dim=-1)  # scores -> probabilities
             next_id = torch.multinomial(probs, num_samples=1)  # sample one
             ids = torch.cat([ids, next_id])
+    if was_training:
+        model.train()
     return tokenizer.decode(ids.tolist())
 
 
@@ -220,6 +224,7 @@ def main() -> None:
             "context_length": CONTEXT_LENGTH,
             "num_heads": NUM_HEADS,
             "num_transformers": NUM_TRANSFORMERS,
+            "dropout": DROPOUT,
         }
         model = build_model(config, device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)

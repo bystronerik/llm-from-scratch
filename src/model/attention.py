@@ -20,7 +20,13 @@ class MultiHeadAttention(torch.nn.Module):
     many small ones.
     """
 
-    def __init__(self, embedding_dim: int, num_heads: int, context_length: int):
+    def __init__(
+        self,
+        embedding_dim: int,
+        num_heads: int,
+        context_length: int,
+        dropout: float = 0.0,
+    ):
         super().__init__()
         assert embedding_dim % num_heads == 0, (
             "embedding_dim must divide evenly into num_heads"
@@ -35,6 +41,11 @@ class MultiHeadAttention(torch.nn.Module):
         self.query = Linear(embedding_dim, embedding_dim)  # what each token wants
         self.value = Linear(embedding_dim, embedding_dim)  # what each token shares
         self.proj = Linear(embedding_dim, embedding_dim)  # mix the heads together
+
+        # Dropout on the attention weights stops a token from leaning on any one
+        # other token; dropout on the projection regularises the block's output.
+        self.attn_dropout = torch.nn.Dropout(dropout)
+        self.resid_dropout = torch.nn.Dropout(dropout)
 
         # The causal mask is the same every forward, so build it once here and
         # slice it to the current sequence length. Registered as a buffer so it
@@ -70,9 +81,10 @@ class MultiHeadAttention(torch.nn.Module):
         scores = scores.masked_fill(mask == 0, float("-inf"))
 
         weights = torch.softmax(scores, dim=-1)  # (B, num_heads, T, T)
+        weights = self.attn_dropout(weights)
         out = weights @ v  # (B, num_heads, T, head_size)
 
         # Concatenate the heads back into one vector per token, then mix.
         B = out.size(0)
         out = out.transpose(1, 2).reshape(B, T, -1)  # (B, T, C)
-        return self.proj(out)  # (B, T, C)
+        return self.resid_dropout(self.proj(out))  # (B, T, C)

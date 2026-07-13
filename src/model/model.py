@@ -14,13 +14,15 @@ class SimpleLanguageModel(torch.nn.Module):
         context_length: int,
         num_heads: int = 4,
         num_transformers: int = 4,
+        dropout: float = 0.0,
     ):
         super().__init__()
         self.token_embedding = Embedding(vocab_size, embedding_dim)
         self.position_embedding = Embedding(context_length, embedding_dim)
+        self.embedding_dropout = torch.nn.Dropout(dropout)
         self.blocks = torch.nn.Sequential(
             *[
-                TransformerBlock(embedding_dim, context_length, num_heads)
+                TransformerBlock(embedding_dim, context_length, num_heads, dropout)
                 for _ in range(num_transformers)
             ]
         )
@@ -37,6 +39,7 @@ class SimpleLanguageModel(torch.nn.Module):
         positions = torch.arange(T, device=token_ids.device)  # (T,)
         pos_emb = self.position_embedding(positions)  # (T, C)
         embeddings = token_emb + pos_emb  # (B, T, C), broadcast over batch
+        embeddings = self.embedding_dropout(embeddings)
 
         embeddings = self.blocks(embeddings)
 
