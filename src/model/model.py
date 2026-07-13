@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 
 from .embedding import Embedding
-from .layernorm import LayerNorm
+from .rmsnorm import RMSNorm
 from .transformer import TransformerBlock
 
 
@@ -26,7 +26,7 @@ class SimpleLanguageModel(torch.nn.Module):
                 for _ in range(num_transformers)
             ]
         )
-        self.ln_f = LayerNorm(embedding_dim)
+        self.ln_f = RMSNorm(embedding_dim)
 
     def forward(
         self,

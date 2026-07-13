@@ -2,8 +2,8 @@ import torch
 from torch import Tensor
 
 from .attention import MultiHeadAttention
-from .layernorm import LayerNorm
 from .mlp import FeedForward
+from .rmsnorm import RMSNorm
 
 
 class TransformerBlock(torch.nn.Module):
@@ -19,8 +19,8 @@ class TransformerBlock(torch.nn.Module):
             embedding_dim, num_heads, context_length, dropout
         )
         self.mlp = FeedForward(embedding_dim, dropout)
-        self.ln_1 = LayerNorm(embedding_dim)
-        self.ln_2 = LayerNorm(embedding_dim)
+        self.ln_1 = RMSNorm(embedding_dim)
+        self.ln_2 = RMSNorm(embedding_dim)
 
     def forward(self, embeddings: Tensor) -> Tensor:
         embeddings = embeddings + self.attention(
