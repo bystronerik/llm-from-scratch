@@ -3,13 +3,15 @@ import logging
 import os
 from datetime import datetime, timezone
 
+from config import Config
+
 log = logging.getLogger("results")
 
 RESULTS_CSV = "results.csv"
 
 
 def log_result(
-    hyperparams: dict,
+    config: Config,
     num_params: int,
     initial_loss: float,
     final_loss: float,
@@ -25,7 +27,7 @@ def log_result(
     utc_now = datetime.now(timezone.utc).replace(microsecond=0)
     fields = {
         "datetime": utc_now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        **hyperparams,
+        **config.log_fields(),
         "num_params": num_params,
         "initial_loss": round(initial_loss, 4),
         "final_loss": round(final_loss, 4),
