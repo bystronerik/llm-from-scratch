@@ -1,7 +1,17 @@
-.idea
+.idea/
+
+# dotenv
+.env
+
+# virtualenv
 .venv
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
 .cache/
+NOTES.md
 
 .DS_Store
-NOTES.md
