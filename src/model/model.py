@@ -18,7 +18,6 @@ class SimpleLanguageModel(torch.nn.Module):
     ):
         super().__init__()
         self.token_embedding = Embedding(vocab_size, embedding_dim)
-        self.position_embedding = Embedding(context_length, embedding_dim)
         self.embedding_dropout = torch.nn.Dropout(dropout)
         self.blocks = torch.nn.Sequential(
             *[
@@ -33,12 +32,7 @@ class SimpleLanguageModel(torch.nn.Module):
         token_ids: Tensor,
         targets: Tensor | None = None,
     ) -> tuple[Tensor, Tensor | None]:
-        _, T = token_ids.shape
-
-        token_emb = self.token_embedding(token_ids)  # (B, T, C)
-        positions = torch.arange(T, device=token_ids.device)  # (T,)
-        pos_emb = self.position_embedding(positions)  # (T, C)
-        embeddings = token_emb + pos_emb  # (B, T, C), broadcast over batch
+        embeddings = self.token_embedding(token_ids)  # (B, T, C)
         embeddings = self.embedding_dropout(embeddings)
 
         embeddings = self.blocks(embeddings)

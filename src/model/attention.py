@@ -4,6 +4,7 @@ import torch
 from torch import Tensor
 
 from .linear import Linear
+from .rope import RotaryEmbedding
 
 
 class MultiHeadAttention(torch.nn.Module):
@@ -42,16 +43,29 @@ class MultiHeadAttention(torch.nn.Module):
         self.value = Linear(embedding_dim, embedding_dim)  # what each token shares
         self.proj = Linear(embedding_dim, embedding_dim)  # mix the heads together
 
+        # Position enters here, by rotating queries and keys per position,
+        # rather than as an additive embedding on the token vectors.
+        self.rotary = RotaryEmbedding(self.head_size, context_length)
+
         # Dropout on the attention weights stops a token from leaning on any one
         # other token; dropout on the projection regularises the block's output.
         self.attn_dropout = torch.nn.Dropout(dropout)
         self.resid_dropout = torch.nn.Dropout(dropout)
 
         # The causal mask is the same every forward, so build it once here and
-        # slice it to the current sequence length. Registered as a buffer so it
-        # follows the model onto the GPU but is not a learnable parameter.
+        # slice it to the current sequence length. Store it as a boolean mask of
+        # the *future* positions (upper triangle above the diagonal) so the
+        # forward pass can masked_fill straight from it, with no per-step
+        # `== 0` comparison. Registered as a buffer so it follows the model onto
+        # the GPU but is not a learnable parameter; persistent=False keeps this
+        # config-derived constant out of checkpoints.
         self.register_buffer(
-            "mask", torch.tril(torch.ones(context_length, context_length))
+            "mask",
+            torch.triu(
+                torch.ones(context_length, context_length, dtype=torch.bool),
+                diagonal=1,
+            ),
+            persistent=False,
         )
 
     def _split_heads(self, x: Tensor) -> Tensor:
@@ -69,6 +83,12 @@ class MultiHeadAttention(torch.nn.Module):
         q = self._split_heads(self.query(x))  # (B, num_heads, T, head_size)
         v = self._split_heads(self.value(x))  # (B, num_heads, T, head_size)
 
+        # Rotate queries and keys by position so their dot product below encodes
+        # relative distance. Values are left untouched -- only the matching
+        # (q.k) needs positional information, not the payload being mixed.
+        q = self.rotary(q)
+        k = self.rotary(k)
+
         # Affinity of every query against every key, per head. Scale by
         # 1/sqrt(head_size) so the softmax stays smooth instead of collapsing
         # onto one token.
@@ -76,9 +96,9 @@ class MultiHeadAttention(torch.nn.Module):
         scores = scores / math.sqrt(self.head_size)
 
         # Causal mask: a token may only attend to positions at or before it,
-        # so future tokens are set to -inf and vanish after the softmax.
-        mask = self.mask[:T, :T]  # (T, T), sliced from the prebuilt buffer
-        scores = scores.masked_fill(mask == 0, float("-inf"))
+        # so future tokens are set to -inf and vanish after the softmax. The
+        # buffer already marks the future positions, so fill straight from it.
+        scores = scores.masked_fill(self.mask[:T, :T], float("-inf"))
 
         weights = torch.softmax(scores, dim=-1)  # (B, num_heads, T, T)
         weights = self.attn_dropout(weights)
