@@ -4,7 +4,7 @@ import time
 import torch
 
 from cli import parse_args
-from dataset import build_dataloaders, encode_corpus
+from dataset import build_batch_samplers, encode_corpus
 from inference import generate
 from results import log_result
 from training import build_run, resume_run, train
@@ -30,15 +30,19 @@ def main() -> None:
     )
 
     data = encode_corpus(run.tokenizer, run.text, run.config.cache_dir)
-    loader, val_loader = build_dataloaders(
-        data, run.config.context_length, run.config.batch_size, run.config.val_fraction
+    train_batches, val_batches = build_batch_samplers(
+        data,
+        run.config.context_length,
+        run.config.batch_size,
+        run.config.val_fraction,
+        device,
     )
 
     num_params = sum(p.numel() for p in run.model.parameters())
     log.info("Parameters: %d", num_params)
 
     initial_loss, final_loss, val_loss, train_seconds = train(
-        run, loader, val_loader, device
+        run, train_batches, val_batches
     )
 
     prompt = "The "

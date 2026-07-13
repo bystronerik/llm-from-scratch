@@ -6,16 +6,16 @@ from dataclasses import dataclass
 class Config:
     # --- Model architecture ---
     vocab_size: int = 0  # set once the tokenizer is built
-    embedding_dim: int = 64  # size of each token's vector (C)
+    embedding_dim: int = 128  # size of each token's vector (C)
     context_length: int = 64  # how many tokens the model sees at once (T)
     num_heads: int = 4  # attention heads per transformer block
-    num_transformers: int = 6  # number of stacked transformer blocks
+    num_transformers: int = 4  # number of stacked transformer blocks
     dropout: float = (
         0.1  # fraction of activations zeroed each step; raise if val >> train
     )
 
     # --- Optimization ---
-    batch_size: int = 64  # how many windows per training step (B)
+    batch_size: int = 256  # how many windows per training step (B)
     steps: int = 5000  # number of gradient updates
     learning_rate: float = 1e-3  # peak LR reached at the end of warmup
     warmup_steps: int = 1000  # steps to linearly ramp the LR from 0 to learning_rate
