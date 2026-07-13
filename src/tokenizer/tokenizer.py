@@ -6,7 +6,7 @@ from typing import Protocol
 
 UNKNOWN = 0
 
-_CHUNK_RE = re.compile(r"\s+|\S+")
+_CHUNK_RE = re.compile(r"[^\W\d_]+|\d+|[^\w\s]+|\s+")
 
 
 class Tokenizer(Protocol):

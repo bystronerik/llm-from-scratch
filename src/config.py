@@ -23,9 +23,9 @@ class Config:
 
     # --- Data / evaluation ---
     num_stories: int = (
-        10000  # how many TinyStories entries to concatenate into the corpus
+        100000  # how many TinyStories entries to concatenate into the corpus
     )
-    bpe_merges: int = 500  # how many byte-pair merges the tokenizer learns
+    bpe_merges: int = 512  # how many byte-pair merges the tokenizer learns
     val_fraction: float = 0.1  # portion of the data held out for validation
     eval_interval: int = 500  # how often (in steps) to measure validation loss
     eval_batches: int = 50  # how many val batches to average per measurement
