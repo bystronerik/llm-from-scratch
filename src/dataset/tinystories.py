@@ -14,9 +14,14 @@ def load_tinystories(num_stories: int, cache_path: str = DEFAULT_CACHE_PATH) -> 
     tokenizer and SlidingWindowDataset can consume the result unchanged.
 
     On the first run the slice is downloaded via HuggingFace Datasets and the
-    joined text is written to ``cache_path``; later runs read that file
-    directly and skip the download.
+    joined text is written to a cache file; later runs read that file directly
+    and skip the download. ``num_stories`` is baked into the cache filename
+    (e.g. ``tinystories_5000.txt``) so changing it uses a distinct cache and
+    triggers a fresh download instead of reusing a stale slice.
     """
+    root, ext = os.path.splitext(cache_path)
+    cache_path = f"{root}_{num_stories}{ext}"
+
     if os.path.exists(cache_path):
         log.info("Loading cached TinyStories text from %s", cache_path)
         with open(cache_path, encoding="utf-8") as f:
