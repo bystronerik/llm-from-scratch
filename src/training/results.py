@@ -24,6 +24,7 @@ def log_result(
     notes: str = "",
 ) -> None:
     utc_now = datetime.now(timezone.utc).replace(microsecond=0)
+
     fields = {
         "datetime": utc_now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "run_id": config.run_id,
@@ -39,10 +40,13 @@ def log_result(
         "outcome": outcome,
         "notes": notes,
     }
+
     write_header = not os.path.exists(RESULTS_CSV)
+
     with open(RESULTS_CSV, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(fields))
         if write_header:
             writer.writeheader()
         writer.writerow(fields)
-    log.info("Appended run to %s", RESULTS_CSV)
+
+    log.info("Logged run to %s", RESULTS_CSV)

@@ -1,83 +1,77 @@
+import argparse
 import logging
-import time
 
-import torch
-
-from cli import parse_args
-from dataset import build_batch_samplers, build_wikipedia_corpus
-from inference import generate
-from results import log_result
-from training import build_run, resume_run, train
-from utils import get_device
+from training.command import train_command
+from inference.command import run_command
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-log = logging.getLogger("main")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="llm", description="Train and run the language model."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    train = subparsers.add_parser("train", help="Pretrain the model (or resume).")
+    train.add_argument(
+        "--checkpoint",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Resume from a checkpoint file (e.g. .cache/checkpoints/20260713-213500/step_1000.pt).",
+    )
+    train.set_defaults(func=train_command)
+
+    run = subparsers.add_parser("run", help="Generate text from a trained checkpoint.")
+    run.add_argument(
+        "--checkpoint",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Checkpoint to load. Defaults to the newest under .cache/checkpoints.",
+    )
+    run.add_argument(
+        "--prompt",
+        type=str,
+        default="The ",
+        help="Text to continue from.",
+    )
+    run.add_argument(
+        "--max-new-tokens",
+        type=int,
+        default=None,
+        help="Tokens to generate. Defaults to the checkpoint's config.",
+    )
+    run.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="<1 sharpens, >1 flattens, 0 = greedy. Defaults to the config.",
+    )
+    run.add_argument(
+        "--top-k",
+        type=int,
+        default=None,
+        help="Keep only the k most likely tokens. Defaults to the config.",
+    )
+    run.add_argument(
+        "--top-p",
+        type=float,
+        default=None,
+        help="Nucleus sampling threshold. Defaults to the config.",
+    )
+    run.set_defaults(func=run_command)
+
+    return parser
 
 
 def main() -> None:
-    args = parse_args()
-    torch.manual_seed(42)
-
-    device = get_device()
-    log.info("Using device: %s", device)
-
-    run = resume_run(args.checkpoint, device) if args.checkpoint else build_run(device)
-
-    data, length = build_wikipedia_corpus(
-        run.tokenizer,
-        run.config.num_articles,
-        run.config.wikipedia_dump,
-        run.config.cache_dir,
-        run.config.corpus_encode_workers,
-    )
-    log.info("Corpus: %d tokens, vocab size %d", length, run.tokenizer.vocab_size)
-
-    train_batches, val_batches = build_batch_samplers(
-        data,
-        length,
-        run.config.context_length,
-        run.config.batch_size,
-        run.config.val_fraction,
-        device,
-    )
-
-    num_params = sum(p.numel() for p in run.model.parameters())
-    log.info("Parameters: %d", num_params)
-
-    initial_loss, final_loss, val_loss, train_seconds = train(
-        run, train_batches, val_batches
-    )
-
-    prompt = "The "
-    prompt_start = time.perf_counter()
-    outcome = generate(
-        run.model,
-        run.tokenizer,
-        prompt,
-        run.config.max_new_tokens,
-        run.config.context_length,
-        temperature=run.config.temperature,
-        top_k=run.config.top_k,
-        top_p=run.config.top_p,
-    )
-    prompt_seconds = time.perf_counter() - prompt_start
-    log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
-
-    log_result(
-        run.config,
-        num_params,
-        initial_loss,
-        final_loss,
-        val_loss=val_loss,
-        prompt=prompt,
-        outcome=outcome,
-        device=str(device),
-        train_seconds=train_seconds,
-        prompt_seconds=prompt_seconds,
-    )
+    args = build_parser().parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":

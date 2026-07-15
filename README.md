@@ -1,23 +1,14 @@
 # llm demo
 
-## Dataset
+## CLI
 
-Training data comes from the [TinyStories](https://huggingface.co/datasets/roneneldan/TinyStories)
-dataset via HuggingFace Datasets. The first `NUM_STORIES` entries are
-concatenated (one story per line) into a single corpus. On the first run the
-slice is downloaded and cached to `datasets/tinystories.txt`; later runs read
-that file directly.
-
-## Checkpoints
-
-Training writes checkpoints to `checkpoints/step_{step}.pt` every
-`CHECKPOINT_INTERVAL` steps (plus once at the end). Each file holds the full
-resume state: `step`, model config, model and optimizer state dicts, the
-tokenizer state, hyperparameters, and the RNG state.
+The `./llm` wrapper (run from the repo root) exposes two commands:
 
 ```bash
-uv run python src/main.py                                        # fresh run
-uv run python src/main.py --checkpoint checkpoints/step_3000.pt  # resume exactly
+./llm train                                              # fresh training run
+./llm train --checkpoint .cache/checkpoints/<id>/step_3000.pt  # resume exactly
+./llm run  --prompt "Once upon"                          # generate from newest checkpoint
+./llm run  --checkpoint <path> --prompt "The " --max-new-tokens 100
 ```
 
 ## Linting

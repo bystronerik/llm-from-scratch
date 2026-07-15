@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-from dataclasses import dataclass
 
 import torch
 
@@ -9,26 +8,27 @@ from config import Config
 from dataset import load_alpaca_corpus, load_wikipedia_text
 from model import SimpleLanguageModel
 from tokenizer import BPETokenizer
-from utils import build_model
-
 from .checkpoint import load_checkpoint
 from .scheduler import CosineWarmupScheduler
+from .state import TrainingState
 
 log = logging.getLogger("setup")
 
 
-@dataclass
-class RunState:
-    config: Config
-    model: SimpleLanguageModel
-    optimizer: torch.optim.Optimizer
-    scheduler: CosineWarmupScheduler
-    tokenizer: BPETokenizer
-    start_step: int
-
-
 def _new_run_id() -> str:
     return time.strftime("%Y%m%d-%H%M%S")
+
+
+def _build_model(config: Config, device: torch.device) -> SimpleLanguageModel:
+    model = SimpleLanguageModel(
+        config.vocab_size,
+        config.embedding_dim,
+        config.context_length,
+        config.num_heads,
+        config.num_transformers,
+        config.dropout,
+    )
+    return model.to(device)
 
 
 def _build_optimizer_and_scheduler(
@@ -45,25 +45,32 @@ def _build_optimizer_and_scheduler(
     return optimizer, scheduler
 
 
-def resume_run(path: str, device: torch.device) -> RunState:
+def resume(path: str, device: torch.device) -> TrainingState:
     log.info("Resuming from checkpoint: %s", path)
-    ckpt = load_checkpoint(path)
-    config = ckpt["config"]
+
+    checkpoint = load_checkpoint(path)
+
+    config = checkpoint["config"]
     config.run_id = _new_run_id()
-    tokenizer = BPETokenizer.from_state(ckpt["tokenizer"])
 
-    model = build_model(config, device)
-    model.load_state_dict(ckpt["model_state"])
+    tokenizer = BPETokenizer.from_state(checkpoint["tokenizer"])
+
+    model = _build_model(config, device)
+    model.load_state_dict(checkpoint["model_state"])
+
     optimizer, scheduler = _build_optimizer_and_scheduler(config, model)
-    optimizer.load_state_dict(ckpt["optimizer_state"])
+    optimizer.load_state_dict(checkpoint["optimizer_state"])
 
-    torch.set_rng_state(ckpt["rng_state"])
-    start_step = ckpt["step"]
-    log.info("Resumed at step %d", start_step)
-    return RunState(config, model, optimizer, scheduler, tokenizer, start_step)
+    torch.set_rng_state(checkpoint["rng_state"])
+
+    step = checkpoint["step"]
+
+    log.info("Resumed at step %d", step)
+
+    return TrainingState(config, model, optimizer, scheduler, tokenizer, step)
 
 
-def build_run(device: torch.device) -> RunState:
+def build(device: torch.device) -> TrainingState:
     config = Config(run_id=_new_run_id())
 
     if os.path.exists(config.tokenizer_path):
@@ -76,19 +83,25 @@ def build_run(device: torch.device) -> RunState:
             config.wikipedia_path,
             config.cache_dir,
         )
+
         alpaca = load_alpaca_corpus(
             config.tokenizer_alpaca_examples, config.cache_dir, config.alpaca_path
         )
+
         log.info(
-            "Training BPE tokenizer (%d merges) on Wikipedia + Alpaca...",
+            "Training BPE tokenizer (%d merges)...",
             config.bpe_merges,
         )
-        tokenizer = BPETokenizer.train(wiki + "\n" + alpaca, config.bpe_merges)
 
+        tokenizer = BPETokenizer.train(wiki + "\n" + alpaca, config.bpe_merges)
         tokenizer.save(config.tokenizer_path)
+
         log.info("Saved tokenizer to %s", config.tokenizer_path)
 
     config.vocab_size = tokenizer.vocab_size
-    model = build_model(config, device)
+
+    model = _build_model(config, device)
+
     optimizer, scheduler = _build_optimizer_and_scheduler(config, model)
-    return RunState(config, model, optimizer, scheduler, tokenizer, start_step=0)
+
+    return TrainingState(config, model, optimizer, scheduler, tokenizer, start_step=0)

@@ -1,16 +1,16 @@
-from .checkpoint import load_checkpoint, save_checkpoint
+from .checkpoint import latest_checkpoint, load_checkpoint
 from .evaluate import evaluate
 from .scheduler import CosineWarmupScheduler
-from .setup import RunState, build_run, resume_run
+from .setup import TrainingState, build, resume
 from .train import train
 
 __all__ = [
     "CosineWarmupScheduler",
-    "RunState",
-    "build_run",
+    "TrainingState",
+    "build",
     "evaluate",
+    "latest_checkpoint",
     "load_checkpoint",
-    "resume_run",
-    "save_checkpoint",
+    "resume",
     "train",
 ]
