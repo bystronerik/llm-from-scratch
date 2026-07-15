@@ -1,3 +1,3 @@
-from .tokenizer import Tokenizer, BPETokenizer
+from .tokenizer import BPETokenizer
 
-__all__ = ["Tokenizer", "BPETokenizer"]
+__all__ = ["BPETokenizer"]

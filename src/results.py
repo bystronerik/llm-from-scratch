@@ -23,7 +23,6 @@ def log_result(
     prompt_seconds: float = float("nan"),
     notes: str = "",
 ) -> None:
-    """Append this run's settings and result to results.csv, creating it if needed."""
     utc_now = datetime.now(timezone.utc).replace(microsecond=0)
     fields = {
         "datetime": utc_now.strftime("%Y-%m-%dT%H:%M:%SZ"),

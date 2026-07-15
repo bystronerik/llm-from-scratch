@@ -6,6 +6,7 @@ dependencies = [
     "datasets>=3.0.0",
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
+    "python-dotenv>=1.0.0",
     "sentencepiece>=0.2.1",
     "tensorboard>=2.21.0",
     "torch>=2.13.0",

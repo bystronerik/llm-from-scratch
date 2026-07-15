@@ -4,14 +4,6 @@ import torch
 
 
 class CosineWarmupScheduler:
-    """Learning-rate schedule: linear warmup, then cosine decay to a floor.
-
-    Steps 1..warmup_steps ramp the LR linearly from 0 up to base_lr, so the
-    first weight updates stay small while the optimizer's moment estimates
-    settle. After warmup the LR follows a half cosine from base_lr down to
-    min_lr across the remaining steps, then holds at min_lr.
-    """
-
     def __init__(
         self,
         optimizer: torch.optim.Optimizer,
@@ -34,9 +26,7 @@ class CosineWarmupScheduler:
         self.min_lr = min_lr
 
     def get_lr(self, step: int) -> float:
-        """Learning rate for a 1-indexed training step."""
         if step <= self.warmup_steps:
-            # Linear warmup: 0 -> base_lr. Guard against warmup_steps == 0.
             if self.warmup_steps == 0:
                 return self.base_lr
             return self.base_lr * step / self.warmup_steps
@@ -44,13 +34,11 @@ class CosineWarmupScheduler:
         if step >= self.total_steps:
             return self.min_lr
 
-        # Cosine decay: base_lr -> min_lr over the post-warmup steps.
         progress = (step - self.warmup_steps) / (self.total_steps - self.warmup_steps)
-        cosine = 0.5 * (1 + math.cos(math.pi * progress))  # 1 -> 0
+        cosine = 0.5 * (1 + math.cos(math.pi * progress))
         return self.min_lr + (self.base_lr - self.min_lr) * cosine
 
     def step(self, step: int) -> float:
-        """Apply the LR for the given step to the optimizer, and return it."""
         lr = self.get_lr(step)
         for group in self.optimizer.param_groups:
             group["lr"] = lr

@@ -19,7 +19,6 @@ def train(
     train_batches: BatchSampler,
     val_batches: BatchSampler,
 ) -> tuple[float, float, float, float]:
-    """Run the training loop, returning (initial, final, val) loss and elapsed seconds."""
     model, optimizer, scheduler = run.model, run.optimizer, run.scheduler
     config, tokenizer = run.config, run.tokenizer
 
@@ -36,20 +35,17 @@ def train(
     val_loss = float("nan")
     train_start = time.perf_counter()
     while step < config.steps:
-        # Sample a fresh batch straight from the device-resident corpus
-        inputs, targets = train_batches.batch()  # (B, T), already on device
-        logits, loss = model(inputs, targets)  # (B, T, vocab)
+        inputs, targets = train_batches.batch()
+        logits, loss = model(inputs, targets)
 
         optimizer.zero_grad()
-        loss.backward()  # compute gradients
-        torch.nn.utils.clip_grad_norm_(
-            model.parameters(), max_norm=1.0
-        )  # clip gradients to stabilize training
-        optimizer.step()  # nudge every weight to lower the loss
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
 
         step += 1
 
-        lr = scheduler.step(step)  # set the LR for this step on the optimizer
+        lr = scheduler.step(step)
 
         if (
             step == 1
@@ -75,9 +71,7 @@ def train(
                 val_loss,
             )
         if step % config.checkpoint_interval == 0 or step >= config.steps:
-            path = os.path.join(
-                config.checkpoint_dir, f"step_{step}.pt"
-            )  # .cache/checkpoints/<run_id>/
+            path = os.path.join(config.checkpoint_dir, f"step_{step}.pt")
             save_checkpoint(
                 make_checkpoint(model, optimizer, step, config, tokenizer),
                 path,

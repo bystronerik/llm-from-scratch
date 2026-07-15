@@ -8,19 +8,6 @@ from .rope import RotaryEmbedding
 
 
 class MultiHeadAttention(torch.nn.Module):
-    """Several causal self-attention heads running in parallel.
-
-    Each token looks at every earlier token (and itself) and pulls in a
-    weighted mix of their values. The weights come from how well a token's
-    query matches another token's key. Each head attends independently in its
-    own subspace, so different heads can specialise on different relationships.
-
-    Rather than looping over heads, all heads share one Q/K/V projection and
-    are computed together as an extra batch dimension: the maths is identical
-    to independent heads, but it runs as a handful of large matmuls instead of
-    many small ones.
-    """
-
     def __init__(
         self,
         embedding_dim: int,
@@ -35,30 +22,16 @@ class MultiHeadAttention(torch.nn.Module):
         self.num_heads = num_heads
         self.head_size = embedding_dim // num_heads
 
-        # One projection each for keys/queries/values, covering every head at
-        # once. Splitting the output into `num_heads` chunks recovers the
-        # per-head projections.
-        self.key = Linear(embedding_dim, embedding_dim)  # what each token offers
-        self.query = Linear(embedding_dim, embedding_dim)  # what each token wants
-        self.value = Linear(embedding_dim, embedding_dim)  # what each token shares
-        self.proj = Linear(embedding_dim, embedding_dim)  # mix the heads together
+        self.key = Linear(embedding_dim, embedding_dim)
+        self.query = Linear(embedding_dim, embedding_dim)
+        self.value = Linear(embedding_dim, embedding_dim)
+        self.proj = Linear(embedding_dim, embedding_dim)
 
-        # Position enters here, by rotating queries and keys per position,
-        # rather than as an additive embedding on the token vectors.
         self.rotary = RotaryEmbedding(self.head_size, context_length)
 
-        # Dropout on the attention weights stops a token from leaning on any one
-        # other token; dropout on the projection regularises the block's output.
         self.attn_dropout = torch.nn.Dropout(dropout)
         self.resid_dropout = torch.nn.Dropout(dropout)
 
-        # The causal mask is the same every forward, so build it once here and
-        # slice it to the current sequence length. Store it as a boolean mask of
-        # the *future* positions (upper triangle above the diagonal) so the
-        # forward pass can masked_fill straight from it, with no per-step
-        # `== 0` comparison. Registered as a buffer so it follows the model onto
-        # the GPU but is not a learnable parameter; persistent=False keeps this
-        # config-derived constant out of checkpoints.
         self.register_buffer(
             "mask",
             torch.triu(
@@ -69,42 +42,31 @@ class MultiHeadAttention(torch.nn.Module):
         )
 
     def _split_heads(self, x: Tensor) -> Tensor:
-        # (B, T, C) -> (B, num_heads, T, head_size), so heads ride alongside
-        # the batch dimension and every matmul below covers all heads at once.
+
         B, T, _ = x.shape
         x = x.view(B, T, self.num_heads, self.head_size)
         return x.transpose(1, 2)
 
     def forward(self, x: Tensor) -> Tensor:
-        # x: (B, T, C)  ->  output: (B, T, C)
+
         _, T, _ = x.shape
 
-        k = self._split_heads(self.key(x))  # (B, num_heads, T, head_size)
-        q = self._split_heads(self.query(x))  # (B, num_heads, T, head_size)
-        v = self._split_heads(self.value(x))  # (B, num_heads, T, head_size)
+        k = self._split_heads(self.key(x))
+        q = self._split_heads(self.query(x))
+        v = self._split_heads(self.value(x))
 
-        # Rotate queries and keys by position so their dot product below encodes
-        # relative distance. Values are left untouched -- only the matching
-        # (q.k) needs positional information, not the payload being mixed.
         q = self.rotary(q)
         k = self.rotary(k)
 
-        # Affinity of every query against every key, per head. Scale by
-        # 1/sqrt(head_size) so the softmax stays smooth instead of collapsing
-        # onto one token.
-        scores = q @ k.transpose(-2, -1)  # (B, num_heads, T, T)
+        scores = q @ k.transpose(-2, -1)
         scores = scores / math.sqrt(self.head_size)
 
-        # Causal mask: a token may only attend to positions at or before it,
-        # so future tokens are set to -inf and vanish after the softmax. The
-        # buffer already marks the future positions, so fill straight from it.
         scores = scores.masked_fill(self.mask[:T, :T], float("-inf"))
 
-        weights = torch.softmax(scores, dim=-1)  # (B, num_heads, T, T)
+        weights = torch.softmax(scores, dim=-1)
         weights = self.attn_dropout(weights)
-        out = weights @ v  # (B, num_heads, T, head_size)
+        out = weights @ v
 
-        # Concatenate the heads back into one vector per token, then mix.
         B = out.size(0)
-        out = out.transpose(1, 2).reshape(B, T, -1)  # (B, T, C)
-        return self.resid_dropout(self.proj(out))  # (B, T, C)
+        out = out.transpose(1, 2).reshape(B, T, -1)
+        return self.resid_dropout(self.proj(out))

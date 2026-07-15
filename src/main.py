@@ -4,7 +4,7 @@ import time
 import torch
 
 from cli import parse_args
-from dataset import build_batch_samplers, encode_corpus
+from dataset import build_batch_samplers, build_wikipedia_corpus
 from inference import generate
 from results import log_result
 from training import build_run, resume_run, train
@@ -25,13 +25,19 @@ def main() -> None:
     log.info("Using device: %s", device)
 
     run = resume_run(args.checkpoint, device) if args.checkpoint else build_run(device)
-    log.info(
-        "Loaded %d characters, vocab size %d", len(run.text), run.tokenizer.vocab_size
-    )
 
-    data = encode_corpus(run.tokenizer, run.text, run.config.cache_dir)
+    data, length = build_wikipedia_corpus(
+        run.tokenizer,
+        run.config.num_articles,
+        run.config.wikipedia_dump,
+        run.config.cache_dir,
+        run.config.corpus_encode_workers,
+    )
+    log.info("Corpus: %d tokens, vocab size %d", length, run.tokenizer.vocab_size)
+
     train_batches, val_batches = build_batch_samplers(
         data,
+        length,
         run.config.context_length,
         run.config.batch_size,
         run.config.val_fraction,

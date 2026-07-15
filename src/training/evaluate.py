@@ -10,7 +10,6 @@ def evaluate(
     batches: BatchSampler,
     max_batches: int,
 ) -> float:
-    """Average the loss over ``max_batches`` sampled batches, without training."""
     was_training = model.training
     model.eval()
     total_loss = 0.0

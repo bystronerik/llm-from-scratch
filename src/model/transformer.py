@@ -23,8 +23,6 @@ class TransformerBlock(torch.nn.Module):
         self.ln_2 = RMSNorm(embedding_dim)
 
     def forward(self, embeddings: Tensor) -> Tensor:
-        embeddings = embeddings + self.attention(
-            self.ln_1(embeddings)
-        )  # (B, T, C) mixed across tokens
+        embeddings = embeddings + self.attention(self.ln_1(embeddings))
         embeddings = embeddings + self.mlp(self.ln_2(embeddings))
         return embeddings

@@ -8,10 +8,6 @@ from tokenizer import BPETokenizer
 
 
 def get_device() -> torch.device:
-    """Pick the best available device: Metal GPU (mps) on Apple Silicon, else CPU.
-
-    Overridable with the DEVICE env var (e.g. DEVICE=cpu) for benchmarking.
-    """
     override = os.environ.get("DEVICE")
     if override:
         return torch.device(override)
@@ -21,7 +17,6 @@ def get_device() -> torch.device:
 
 
 def build_model(config: Config, device: torch.device) -> SimpleLanguageModel:
-    """Construct a model from the config and move it onto `device`."""
     model = SimpleLanguageModel(
         config.vocab_size,
         config.embedding_dim,
@@ -40,7 +35,6 @@ def make_checkpoint(
     config: Config,
     tokenizer: BPETokenizer,
 ) -> dict:
-    """Bundle everything needed to resume training exactly from this point."""
     return {
         "step": step,
         "config": config,

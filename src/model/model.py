@@ -32,7 +32,7 @@ class SimpleLanguageModel(torch.nn.Module):
         token_ids: Tensor,
         targets: Tensor | None = None,
     ) -> tuple[Tensor, Tensor | None]:
-        embeddings = self.token_embedding(token_ids)  # (B, T, C)
+        embeddings = self.token_embedding(token_ids)
         embeddings = self.embedding_dropout(embeddings)
 
         embeddings = self.blocks(embeddings)

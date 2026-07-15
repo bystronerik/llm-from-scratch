@@ -4,10 +4,14 @@ from dataclasses import dataclass
 
 @dataclass
 class Config:
+    # --- Tokenizer ---
+    tokenizer_path: str = "tokenizer.json"  # cached tokenizer; delete to retrain
+    bpe_merges: int = 4096  # how many byte-pair merges the tokenizer learns
+
     # --- Model architecture ---
     vocab_size: int = 0  # set once the tokenizer is built
     embedding_dim: int = 128  # size of each token's vector (C)
-    context_length: int = 64  # how many tokens the model sees at once (T)
+    context_length: int = 512  # how many tokens the model sees at once (T)
     num_heads: int = 4  # attention heads per transformer block
     num_transformers: int = 4  # number of stacked transformer blocks
     dropout: float = (
@@ -16,40 +20,40 @@ class Config:
 
     # --- Optimization ---
     batch_size: int = 256  # how many windows per training step (B)
-    steps: int = 5000  # number of gradient updates
+    steps: int = 2000  # number of gradient updates
     learning_rate: float = 1e-3  # peak LR reached at the end of warmup
     warmup_steps: int = 1000  # steps to linearly ramp the LR from 0 to learning_rate
     min_lr: float = 1e-4  # LR floor the cosine decay settles to
 
-    # --- Sampling (post-training text generation) ---
+    # --- Sampling ---
     max_new_tokens: int = 300  # how many tokens to generate for the sample
     temperature: float = 1.0  # <1 sharpens, >1 flattens; 0 = greedy (argmax)
     top_k: int | None = None  # keep only the k most likely tokens, or None
     top_p: float | None = None  # keep the smallest nucleus summing to p, or None
 
     # --- Data / evaluation ---
-    num_stories: int = (
-        100000  # how many TinyStories entries to concatenate into the corpus
+    num_articles: int = (
+        50000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)
     )
-    bpe_merges: int = 512  # how many byte-pair merges the tokenizer learns
     val_fraction: float = 0.1  # portion of the data held out for validation
     eval_interval: int = 500  # how often (in steps) to measure validation loss
     eval_batches: int = 50  # how many val batches to average per measurement
 
-    # --- Paths ---
-    # Everything under cache_dir is reproducible run cache: safe to delete, gitignored.
-    # tokenizer.json stays versioned in the repo root — delete it to retrain the BPE.
+    # --- Caching ---
     cache_dir: str = (
         ".cache"  # root for all throwaway run output (datasets, checkpoints)
     )
-    run_id: str = ""  # per-run subdir under checkpoints/; set once in build_run()
-    tokenizer_path: str = "tokenizer.json"  # cached tokenizer; delete to retrain
     checkpoint_interval: int = 1000  # save a checkpoint every N steps (plus at the end)
 
+    run_id: str = ""  # automatically set once in build_run()
+
     @property
-    def dataset_path(self) -> str:
-        """Where the downloaded TinyStories corpus is cached."""
-        return os.path.join(self.cache_dir, "datasets", "tinystories.txt")
+    def alpaca_path(self) -> str:
+        return os.path.join(self.cache_dir, "datasets", "alpaca.txt")
+
+    @property
+    def wikipedia_path(self) -> str:
+        return os.path.join(self.cache_dir, "datasets", "wikipedia.txt")
 
     @property
     def checkpoint_dir(self) -> str:
