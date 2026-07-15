@@ -5,7 +5,7 @@ import time
 import torch
 
 from config import Config
-from dataset import load_alpaca_corpus, load_wikipedia_text
+from dataset import load_alpaca_text, load_wikipedia_text
 from model import SimpleLanguageModel
 from tokenizer import BPETokenizer
 from .checkpoint import load_checkpoint
@@ -50,8 +50,15 @@ def resume(path: str, device: torch.device) -> TrainingState:
 
     checkpoint = load_checkpoint(path)
 
-    config = checkpoint["config"]
-    config.run_id = _new_run_id()
+    checkpoint_config = checkpoint["config"]
+    config = Config(run_id=_new_run_id())
+
+    config.vocab_size = checkpoint_config.vocab_size
+    config.embedding_dim = checkpoint_config.embedding_dim
+    config.context_length = checkpoint_config.context_length
+    config.batch_size = checkpoint_config.batch_size
+    config.num_heads = checkpoint_config.num_heads
+    config.num_transformers = checkpoint_config.num_transformers
 
     tokenizer = BPETokenizer.from_state(checkpoint["tokenizer"])
 
@@ -78,15 +85,9 @@ def build(device: torch.device) -> TrainingState:
         tokenizer = BPETokenizer.load(config.tokenizer_path)
     else:
         wiki = load_wikipedia_text(
-            config.tokenizer_num_articles,
-            config.wikipedia_dump,
-            config.wikipedia_path,
-            config.cache_dir,
+            config.num_articles, config.cache_dir, config.wikipedia_path
         )
-
-        alpaca = load_alpaca_corpus(
-            config.tokenizer_alpaca_examples, config.cache_dir, config.alpaca_path
-        )
+        alpaca = load_alpaca_text(config.cache_dir, config.alpaca_path)
 
         log.info(
             "Training BPE tokenizer (%d merges)...",

@@ -18,14 +18,12 @@ class RotaryEmbedding(torch.nn.Module):
 
     @staticmethod
     def _rotate_half(x: Tensor) -> Tensor:
-
         half = x.shape[-1] // 2
         x1, x2 = x[..., :half], x[..., half:]
         return torch.cat([-x2, x1], dim=-1)
 
     def forward(self, x: Tensor) -> Tensor:
-
         T = x.shape[-2]
-        cos = self.cos[:T]
-        sin = self.sin[:T]
+        cos = self.cos[:T].to(x.dtype)
+        sin = self.sin[:T].to(x.dtype)
         return x * cos + self._rotate_half(x) * sin

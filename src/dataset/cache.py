@@ -23,7 +23,10 @@ def cached_payload(cache_dir: str, name: str, key: str, build: Callable):
         return torch.load(cache_path, weights_only=True)
 
     payload = build()
+
     os.makedirs(os.path.dirname(os.path.abspath(cache_path)), exist_ok=True)
     torch.save(payload, cache_path)
+
     log.info("Saved %s to %s", name, cache_path)
+
     return payload

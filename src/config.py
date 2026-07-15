@@ -33,7 +33,7 @@ class Config:
 
     # --- Data / evaluation ---
     num_articles: int = (
-        50000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)
+        10000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)
     )
     val_fraction: float = 0.1  # portion of the data held out for validation
     eval_interval: int = 500  # how often (in steps) to measure validation loss

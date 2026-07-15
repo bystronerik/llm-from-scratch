@@ -9,7 +9,5 @@ class RMSNorm(torch.nn.Module):
         self.eps = eps
 
     def forward(self, x):
-
         rms = torch.sqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
-
         return self.gamma * (x / rms)

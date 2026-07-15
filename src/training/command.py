@@ -2,9 +2,10 @@ import argparse
 import logging
 import time
 
+import numpy as np
 import torch
 
-from dataset import build_batch_samplers, build_wikipedia_corpus
+from dataset import build_batch_samplers, load_wikipedia_text
 from inference import generate
 from training import resume, build, train
 from .results import log_result
@@ -15,37 +16,39 @@ log = logging.getLogger("training")
 
 def train_command(args: argparse.Namespace) -> None:
     torch.manual_seed(42)
+    torch.set_default_dtype(torch.bfloat16)
 
     device = get_device()
     log.info("Using device: %s", device)
 
-    run = resume(args.checkpoint, device) if args.checkpoint else build(device)
+    state = resume(args.checkpoint, device) if args.checkpoint else build(device)
 
-    data, length = build_wikipedia_corpus(
-        run.tokenizer,
-        run.config.num_articles,
-        run.config.wikipedia_dump,
-        run.config.cache_dir,
-        run.config.corpus_encode_workers,
+    text = load_wikipedia_text(
+        state.config.num_articles,
+        state.config.cache_dir,
+        state.config.wikipedia_path,
     )
 
-    log.info("Corpus: %d tokens, vocab size %d", length, run.tokenizer.vocab_size)
+    data = np.asarray(state.tokenizer.encode(text), dtype=np.uint16)
+    length = len(data)
+
+    log.info("Corpus: %d tokens, vocab size %d", length, state.tokenizer.vocab_size)
 
     train_batches, val_batches = build_batch_samplers(
         data,
         length,
-        run.config.context_length,
-        run.config.batch_size,
-        run.config.val_fraction,
+        state.config.context_length,
+        state.config.batch_size,
+        state.config.val_fraction,
         device,
     )
 
-    num_params = sum(p.numel() for p in run.model.parameters())
+    num_params = sum(p.numel() for p in state.model.parameters())
 
     log.info("Parameters: %d", num_params)
 
     initial_loss, final_loss, val_loss, train_seconds = train(
-        run, train_batches, val_batches
+        state, train_batches, val_batches
     )
 
     prompt = "The "
@@ -53,14 +56,14 @@ def train_command(args: argparse.Namespace) -> None:
     prompt_start = time.perf_counter()
 
     outcome = generate(
-        run.model,
-        run.tokenizer,
+        state.model,
+        state.tokenizer,
         prompt,
-        run.config.max_new_tokens,
-        run.config.context_length,
-        temperature=run.config.temperature,
-        top_k=run.config.top_k,
-        top_p=run.config.top_p,
+        state.config.max_new_tokens,
+        state.config.context_length,
+        temperature=state.config.temperature,
+        top_k=state.config.top_k,
+        top_p=state.config.top_p,
     )
 
     prompt_seconds = time.perf_counter() - prompt_start
@@ -68,7 +71,7 @@ def train_command(args: argparse.Namespace) -> None:
     log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
 
     log_result(
-        run.config,
+        state.config,
         num_params,
         initial_loss,
         final_loss,

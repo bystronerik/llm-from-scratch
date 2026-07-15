@@ -53,7 +53,10 @@ def build_batch_samplers(
     device: torch.device,
 ) -> tuple[BatchSampler, BatchSampler]:
     split = int(length * (1 - val_fraction))
+
     log.info("Split into %d train / %d val tokens", split, length - split)
+
     train_batches = BatchSampler(data, 0, split, context_length, batch_size, device)
     val_batches = BatchSampler(data, split, length, context_length, batch_size, device)
+
     return train_batches, val_batches

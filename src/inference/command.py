@@ -30,6 +30,7 @@ def run_command(args: argparse.Namespace) -> None:
     config = state.config
 
     max_new_tokens = args.max_new_tokens or config.max_new_tokens
+
     temperature = config.temperature if args.temperature is None else args.temperature
     top_k = config.top_k if args.top_k is None else args.top_k
     top_p = config.top_p if args.top_p is None else args.top_p

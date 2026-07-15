@@ -35,23 +35,31 @@ def generate(
                 next_id = last_step.argmax(dim=-1, keepdim=True)
             else:
                 if temperature != 1.0:
-                    logits = logits / temperature
+                    last_step = last_step / temperature
 
                 if top_k is not None:
-                    k = min(top_k, logits.size(-1))
+                    k = min(top_k, last_step.size(-1))
 
-                    threshold = torch.topk(logits, k).values[-1]
-                    logits = logits.masked_fill(logits < threshold, float("-inf"))
+                    threshold = torch.topk(last_step, k).values[-1]
+
+                    last_step = last_step.masked_fill(
+                        last_step < threshold, float("-inf")
+                    )
 
                 if top_p is not None:
-                    sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+                    sorted_logits, sorted_idx = torch.sort(last_step, descending=True)
                     sorted_probs = torch.softmax(sorted_logits, dim=-1)
+
                     mass_before = sorted_probs.cumsum(dim=-1) - sorted_probs
+
                     remove = mass_before >= top_p
                     remove[0] = False
-                    logits = logits.index_fill(0, sorted_idx[remove], float("-inf"))
 
-                probs = torch.softmax(logits, dim=-1)
+                    last_step = last_step.index_fill(
+                        0, sorted_idx[remove], float("-inf")
+                    )
+
+                probs = torch.softmax(last_step, dim=-1)
                 next_id = torch.multinomial(probs, num_samples=1)
 
             ids = torch.cat([ids, next_id])

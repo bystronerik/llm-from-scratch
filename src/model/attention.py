@@ -42,13 +42,11 @@ class MultiHeadAttention(torch.nn.Module):
         )
 
     def _split_heads(self, x: Tensor) -> Tensor:
-
         B, T, _ = x.shape
         x = x.view(B, T, self.num_heads, self.head_size)
         return x.transpose(1, 2)
 
     def forward(self, x: Tensor) -> Tensor:
-
         _, T, _ = x.shape
 
         k = self._split_heads(self.key(x))
@@ -65,8 +63,11 @@ class MultiHeadAttention(torch.nn.Module):
 
         weights = torch.softmax(scores, dim=-1)
         weights = self.attn_dropout(weights)
+
         out = weights @ v
 
         B = out.size(0)
+
         out = out.transpose(1, 2).reshape(B, T, -1)
+
         return self.resid_dropout(self.proj(out))
