@@ -10,17 +10,17 @@ class Config:
 
     # --- Model architecture ---
     vocab_size: int = 0  # set once the tokenizer is built
-    embedding_dim: int = 128  # size of each token's vector (C)
-    context_length: int = 512  # how many tokens the model sees at once (T)
-    num_heads: int = 4  # attention heads per transformer block
-    num_transformers: int = 4  # number of stacked transformer blocks
+    embedding_dim: int = 512  # size of each token's vector (C)
+    context_length: int = 128  # how many tokens the model sees at once (T)
+    num_heads: int = 8  # attention heads per transformer block
+    num_transformers: int = 6  # number of stacked transformer blocks
     dropout: float = (
-        0.1  # fraction of activations zeroed each step; raise if val >> train
+        0.05  # fraction of activations zeroed each step; raise if val >> train
     )
 
     # --- Optimization ---
-    batch_size: int = 256  # how many windows per training step (B)
-    steps: int = 2000  # number of gradient updates
+    batch_size: int = 128  # how many windows per training step (B)
+    steps: int = 5000  # number of gradient updates
     learning_rate: float = 1e-3  # peak LR reached at the end of warmup
     warmup_steps: int = 1000  # steps to linearly ramp the LR from 0 to learning_rate
     min_lr: float = 1e-4  # LR floor the cosine decay settles to
@@ -32,11 +32,9 @@ class Config:
     top_p: float | None = None  # keep the smallest nucleus summing to p, or None
 
     # --- Data / evaluation ---
-    num_articles: int = (
-        10000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)
-    )
+    num_articles: int = 100000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)
     val_fraction: float = 0.1  # portion of the data held out for validation
-    eval_interval: int = 500  # how often (in steps) to measure validation loss
+    eval_interval: int = 1000  # how often (in steps) to measure validation loss
     eval_batches: int = 50  # how many val batches to average per measurement
 
     # --- Caching ---

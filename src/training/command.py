@@ -47,28 +47,36 @@ def train_command(args: argparse.Namespace) -> None:
 
     log.info("Parameters: %d", num_params)
 
-    initial_loss, final_loss, val_loss, train_seconds = train(
+    initial_loss, final_loss, val_loss, train_seconds, step, interrupted = train(
         state, train_batches, val_batches
     )
 
     prompt = "The "
+    outcome = ""
+    prompt_seconds = float("nan")
 
-    prompt_start = time.perf_counter()
+    try:
+        prompt_start = time.perf_counter()
 
-    outcome = generate(
-        state.model,
-        state.tokenizer,
-        prompt,
-        state.config.max_new_tokens,
-        state.config.context_length,
-        temperature=state.config.temperature,
-        top_k=state.config.top_k,
-        top_p=state.config.top_p,
-    )
+        outcome = generate(
+            state.model,
+            state.tokenizer,
+            prompt,
+            state.config.max_new_tokens,
+            state.config.context_length,
+            temperature=state.config.temperature,
+            top_k=state.config.top_k,
+            top_p=state.config.top_p,
+        )
 
-    prompt_seconds = time.perf_counter() - prompt_start
+        prompt_seconds = time.perf_counter() - prompt_start
 
-    log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
+        log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
+    except KeyboardInterrupt:
+        interrupted = True
+        log.warning("Interrupted during sample generation; skipping sample.")
+
+    notes = f"INTERRUPTED at step {step}/{state.config.steps}" if interrupted else ""
 
     log_result(
         state.config,
@@ -81,4 +89,5 @@ def train_command(args: argparse.Namespace) -> None:
         device=str(device),
         train_seconds=train_seconds,
         prompt_seconds=prompt_seconds,
+        notes=notes,
     )
