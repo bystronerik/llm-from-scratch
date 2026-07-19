@@ -48,6 +48,8 @@ def run_command(args: argparse.Namespace) -> None:
         top_k=top_k,
         top_p=top_p,
         stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
+        sink_tokens=config.sink_tokens,
+        window_size=config.kv_window or None,
     )
 
     prompt_seconds = time.perf_counter() - prompt_start

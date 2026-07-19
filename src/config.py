@@ -30,6 +30,8 @@ class Config:
     temperature: float = 1.0  # <1 sharpens, >1 flattens; 0 = greedy (argmax)
     top_k: int | None = None  # keep only the k most likely tokens, or None
     top_p: float | None = None  # keep the smallest nucleus summing to p, or None
+    sink_tokens: int = 4  # earliest tokens the KV cache never evicts
+    kv_window: int = 0  # recent tokens kept alongside the sinks; 0 = fill the context
 
     # --- Data / evaluation ---
     num_articles: int = 100000  # Wikipedia articles streamed into the pretrain corpus (see wikipedia.py)

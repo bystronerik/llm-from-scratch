@@ -69,6 +69,8 @@ def train_command(args: argparse.Namespace) -> None:
             top_k=state.config.top_k,
             top_p=state.config.top_p,
             stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
+            sink_tokens=state.config.sink_tokens,
+            window_size=state.config.kv_window or None,
         )
 
         prompt_seconds = time.perf_counter() - prompt_start

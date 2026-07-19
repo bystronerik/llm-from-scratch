@@ -13,8 +13,8 @@ class RotaryEmbedding(torch.nn.Module):
         angles = torch.outer(positions, inv_freq)
         angles = torch.cat([angles, angles], dim=-1)
 
-        self.register_buffer("cos", angles.cos(), persistent=False)
-        self.register_buffer("sin", angles.sin(), persistent=False)
+        self.register_buffer("cos", angles.cos(), persistent=True)
+        self.register_buffer("sin", angles.sin(), persistent=True)
 
     @staticmethod
     def _rotate_half(x: Tensor) -> Tensor:
@@ -22,8 +22,8 @@ class RotaryEmbedding(torch.nn.Module):
         x1, x2 = x[..., :half], x[..., half:]
         return torch.cat([-x2, x1], dim=-1)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, offset: int = 0) -> Tensor:
         T = x.shape[-2]
-        cos = self.cos[:T].to(x.dtype)
-        sin = self.sin[:T].to(x.dtype)
+        cos = self.cos[offset : offset + T].to(x.dtype)
+        sin = self.sin[offset : offset + T].to(x.dtype)
         return x * cos + self._rotate_half(x) * sin

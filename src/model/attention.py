@@ -3,6 +3,7 @@ import math
 import torch
 from torch import Tensor
 
+from .cache import KVCache
 from .linear import Linear
 from .rope import RotaryEmbedding
 
@@ -14,6 +15,7 @@ class MultiHeadAttention(torch.nn.Module):
         num_heads: int,
         context_length: int,
         dropout: float = 0.0,
+        rope_base: float = 10000.0,
     ):
         super().__init__()
         assert embedding_dim % num_heads == 0, (
@@ -27,7 +29,7 @@ class MultiHeadAttention(torch.nn.Module):
         self.value = Linear(embedding_dim, embedding_dim)
         self.proj = Linear(embedding_dim, embedding_dim)
 
-        self.rotary = RotaryEmbedding(self.head_size, context_length)
+        self.rotary = RotaryEmbedding(self.head_size, context_length, rope_base)
 
         self.attn_dropout = torch.nn.Dropout(dropout)
         self.resid_dropout = torch.nn.Dropout(dropout)
@@ -38,7 +40,7 @@ class MultiHeadAttention(torch.nn.Module):
                 torch.ones(context_length, context_length, dtype=torch.bool),
                 diagonal=1,
             ),
-            persistent=False,
+            persistent=True,
         )
 
     def _split_heads(self, x: Tensor) -> Tensor:
@@ -46,27 +48,31 @@ class MultiHeadAttention(torch.nn.Module):
         x = x.view(B, T, self.num_heads, self.head_size)
         return x.transpose(1, 2)
 
-    def forward(self, x: Tensor) -> Tensor:
-        _, T, _ = x.shape
+    def forward(self, x: Tensor, cache: KVCache | None = None) -> Tensor:
+        B, T, _ = x.shape
 
         k = self._split_heads(self.key(x))
         q = self._split_heads(self.query(x))
         v = self._split_heads(self.value(x))
 
-        q = self.rotary(q)
+        if cache is not None:
+            k, v = cache.append(k, v)
+
+        L = k.size(-2)
+
         k = self.rotary(k)
+
+        q = self.rotary(q, offset=L - T)
 
         scores = q @ k.transpose(-2, -1)
         scores = scores / math.sqrt(self.head_size)
 
-        scores = scores.masked_fill(self.mask[:T, :T], float("-inf"))
+        scores = scores.masked_fill(self.mask[L - T : L, :L], float("-inf"))
 
         weights = torch.softmax(scores, dim=-1)
         weights = self.attn_dropout(weights)
 
         out = weights @ v
-
-        B = out.size(0)
 
         out = out.transpose(1, 2).reshape(B, T, -1)
 
