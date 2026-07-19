@@ -3,6 +3,8 @@ import os
 import re
 from collections import Counter, defaultdict
 
+from tokenizer import DEFAULT_SPECIAL_TOKENS
+
 _CHUNK_RE = re.compile(r"[^\W\d_]+|\d+|_+|[^\w\s]+|\s+")
 
 
@@ -102,6 +104,8 @@ class BPETokenizer:
         self._special_re: re.Pattern | None = None
         if special_tokens:
             self.add_special_tokens(special_tokens)
+        else:
+            self.add_special_tokens(DEFAULT_SPECIAL_TOKENS)
 
     @classmethod
     def train(cls, text: str, num_merges: int) -> "BPETokenizer":
@@ -151,6 +155,11 @@ class BPETokenizer:
 
     def _special_id(self, token: str) -> int:
         return self._first_special_id + self.special_tokens.index(token)
+
+    def special_token_id(self, token: str) -> int | None:
+        if token in self.special_tokens:
+            return self._special_id(token)
+        return None
 
     @property
     def vocab_size(self) -> int:

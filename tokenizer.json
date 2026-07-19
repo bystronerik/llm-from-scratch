@@ -20739,5 +20739,7 @@
     "ł",
     "Ń"
   ],
-  "special_tokens": []
+  "special_tokens": [
+    "<|endoftext|>"
+  ]
 }

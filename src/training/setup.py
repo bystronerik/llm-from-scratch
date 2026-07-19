@@ -7,7 +7,7 @@ import torch
 from config import Config
 from dataset import load_alpaca_text, load_wikipedia_text
 from model import SimpleLanguageModel
-from tokenizer import BPETokenizer
+from tokenizer import BPETokenizer, EOS_TOKEN
 from .checkpoint import load_checkpoint
 from .scheduler import CosineWarmupScheduler
 from .state import TrainingState
@@ -94,10 +94,16 @@ def build(device: torch.device) -> TrainingState:
             config.bpe_merges,
         )
 
-        tokenizer = BPETokenizer.train(wiki + "\n" + alpaca, config.bpe_merges)
+        corpus = (wiki + "\n" + alpaca).replace(EOS_TOKEN, "\n")
+        tokenizer = BPETokenizer.train(corpus, config.bpe_merges)
         tokenizer.save(config.tokenizer_path)
 
-        log.info("Saved tokenizer to %s", config.tokenizer_path)
+    log.info(
+        "Tokenizer ready: %d tokens (incl. %d special) at %s",
+        tokenizer.vocab_size,
+        len(tokenizer.special_tokens),
+        config.tokenizer_path,
+    )
 
     config.vocab_size = tokenizer.vocab_size
 

@@ -5,6 +5,7 @@ import time
 import torch
 
 from inference import generate
+from tokenizer import EOS_TOKEN
 from training import latest_checkpoint, resume
 from utils import get_device
 
@@ -46,6 +47,7 @@ def run_command(args: argparse.Namespace) -> None:
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
+        stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
     )
 
     prompt_seconds = time.perf_counter() - prompt_start

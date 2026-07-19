@@ -1,0 +1,3 @@
+EOS_TOKEN = "<|endoftext|>"
+
+DEFAULT_SPECIAL_TOKENS = [EOS_TOKEN]

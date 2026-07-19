@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Iterator
 
+from tokenizer import EOS_TOKEN
 from dataset.huggingface import fetch_dataset
 
 log = logging.getLogger("dataset.wikipedia")
@@ -9,8 +10,7 @@ log = logging.getLogger("dataset.wikipedia")
 HF_DATASET = "wikimedia/wikipedia"
 HF_NAME = "20231101.en"
 
-
-ARTICLE_SEPARATOR = "\n\n"
+ARTICLE_SEPARATOR = EOS_TOKEN
 
 
 def iter_wikipedia_articles(num_articles: int, cache_dir: str) -> Iterator[str]:

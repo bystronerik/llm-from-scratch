@@ -7,6 +7,7 @@ import torch
 
 from dataset import build_batch_samplers, load_wikipedia_text
 from inference import generate
+from tokenizer import EOS_TOKEN
 from training import resume, build, train
 from .results import log_result
 from utils import get_device
@@ -67,6 +68,7 @@ def train_command(args: argparse.Namespace) -> None:
             temperature=state.config.temperature,
             top_k=state.config.top_k,
             top_p=state.config.top_p,
+            stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
         )
 
         prompt_seconds = time.perf_counter() - prompt_start
