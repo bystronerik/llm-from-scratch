@@ -19,6 +19,7 @@ def train(
 ) -> tuple[float, float, float, float, int, bool]:
     config, tokenizer = state.config, state.tokenizer
     model, optimizer, scheduler = state.model, state.optimizer, state.scheduler
+    master = state.master
 
     model.train()
 
@@ -43,10 +44,17 @@ def train(
 
             logits, loss = model(inputs, targets)
 
-            optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+            master.copy_grads()
+
+            torch.nn.utils.clip_grad_norm_(master.parameters(), max_norm=1.0)
             optimizer.step()
+
+            master.copy_to_model()
+
+            model.zero_grad(set_to_none=True)
+            optimizer.zero_grad(set_to_none=True)
 
             step += 1
 
@@ -79,7 +87,9 @@ def train(
                 )
 
             if step % config.checkpoint_interval == 0 or step >= config.steps:
-                path = make_checkpoint(config, tokenizer, model, optimizer, step)
+                path = make_checkpoint(
+                    config, tokenizer, model, master, optimizer, step
+                )
                 log.info("Saved checkpoint: %s", path)
     except KeyboardInterrupt:
         interrupted = True
@@ -89,7 +99,7 @@ def train(
         if step > 0:
             final_loss = loss.item()
             val_loss = evaluate(model, val_batches, config.eval_batches)
-            path = make_checkpoint(config, tokenizer, model, optimizer, step)
+            path = make_checkpoint(config, tokenizer, model, master, optimizer, step)
             log.info("Saved interrupt checkpoint: %s", path)
 
     train_seconds = time.perf_counter() - train_start

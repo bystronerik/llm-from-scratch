@@ -9,6 +9,7 @@ from dataset import load_alpaca_text, load_wikipedia_text
 from model import SimpleLanguageModel
 from tokenizer import BPETokenizer, EOS_TOKEN
 from .checkpoint import load_checkpoint
+from .precision import MasterWeights
 from .scheduler import CosineWarmupScheduler
 from .state import TrainingState
 
@@ -32,9 +33,9 @@ def _build_model(config: Config, device: torch.device) -> SimpleLanguageModel:
 
 
 def _build_optimizer_and_scheduler(
-    config: Config, model: SimpleLanguageModel
+    config: Config, master: MasterWeights
 ) -> tuple[torch.optim.Optimizer, CosineWarmupScheduler]:
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+    optimizer = torch.optim.AdamW(master.parameters(), lr=config.learning_rate)
     scheduler = CosineWarmupScheduler(
         optimizer,
         warmup_steps=config.warmup_steps,
@@ -65,7 +66,9 @@ def resume(path: str, device: torch.device) -> TrainingState:
     model = _build_model(config, device)
     model.load_state_dict(checkpoint["model_state"])
 
-    optimizer, scheduler = _build_optimizer_and_scheduler(config, model)
+    master = MasterWeights(model, checkpoint["model_state"])
+
+    optimizer, scheduler = _build_optimizer_and_scheduler(config, master)
     optimizer.load_state_dict(checkpoint["optimizer_state"])
 
     torch.set_rng_state(checkpoint["rng_state"])
@@ -74,7 +77,7 @@ def resume(path: str, device: torch.device) -> TrainingState:
 
     log.info("Resumed at step %d", step)
 
-    return TrainingState(config, model, optimizer, scheduler, tokenizer, step)
+    return TrainingState(config, model, master, optimizer, scheduler, tokenizer, step)
 
 
 def build(device: torch.device) -> TrainingState:
@@ -108,7 +111,10 @@ def build(device: torch.device) -> TrainingState:
     config.vocab_size = tokenizer.vocab_size
 
     model = _build_model(config, device)
+    master = MasterWeights(model)
 
-    optimizer, scheduler = _build_optimizer_and_scheduler(config, model)
+    optimizer, scheduler = _build_optimizer_and_scheduler(config, master)
 
-    return TrainingState(config, model, optimizer, scheduler, tokenizer, start_step=0)
+    return TrainingState(
+        config, model, master, optimizer, scheduler, tokenizer, start_step=0
+    )

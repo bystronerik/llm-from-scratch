@@ -6,12 +6,14 @@ import torch
 from config import Config
 from model import SimpleLanguageModel
 from tokenizer import BPETokenizer
+from .precision import MasterWeights
 
 
 def make_checkpoint(
     config: Config,
     tokenizer: BPETokenizer,
     model: SimpleLanguageModel,
+    master: MasterWeights,
     optimizer: torch.optim.Optimizer,
     step: int,
 ) -> str:
@@ -21,11 +23,13 @@ def make_checkpoint(
 
     os.makedirs(parent, exist_ok=True)
 
+    model_state = model.state_dict() | master.state_dict()
+
     torch.save(
         {
             "step": step,
             "config": config,
-            "model_state": model.state_dict(),
+            "model_state": model_state,
             "optimizer_state": optimizer.state_dict(),
             "tokenizer": tokenizer.get_state(),
             "rng_state": torch.get_rng_state(),
