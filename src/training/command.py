@@ -5,12 +5,12 @@ import time
 import numpy as np
 import torch
 
-from dataset import build_batch_samplers, load_wikipedia_text
+from dataset import build_batch_samplers, cache_key, cached_tokens, load_wikipedia_text
 from inference import generate
 from tokenizer import EOS_TOKEN
 from training import resume, build, train
 from .results import log_result
-from utils import get_device
+from utils import get_device, pipeline_mode
 
 log = logging.getLogger("training")
 
@@ -24,13 +24,17 @@ def train_command(args: argparse.Namespace) -> None:
 
     state = resume(args.checkpoint, device) if args.checkpoint else build(device)
 
-    text = load_wikipedia_text(
-        state.config.num_articles,
-        state.config.cache_dir,
-        state.config.wikipedia_path,
-    )
+    def encode_corpus() -> np.ndarray:
+        text = load_wikipedia_text(
+            state.config.num_articles,
+            state.config.cache_dir,
+            state.config.wikipedia_path,
+        )
+        log.info("Tokenizing corpus (%d chars); this is cached afterwards.", len(text))
+        return np.asarray(state.tokenizer.encode(text), dtype=np.uint16)
 
-    data = np.asarray(state.tokenizer.encode(text), dtype=np.uint16)
+    key = cache_key(state.tokenizer, state.config.num_articles)
+    data = cached_tokens(state.config.cache_dir, key, encode_corpus)
     length = len(data)
 
     log.info("Corpus: %d tokens, vocab size %d", length, state.tokenizer.vocab_size)
@@ -56,29 +60,32 @@ def train_command(args: argparse.Namespace) -> None:
     outcome = ""
     prompt_seconds = float("nan")
 
-    try:
-        prompt_start = time.perf_counter()
+    if pipeline_mode():
+        log.info("PIPELINE mode: skipping sample generation.")
+    else:
+        try:
+            prompt_start = time.perf_counter()
 
-        outcome = generate(
-            state.model,
-            state.tokenizer,
-            prompt,
-            state.config.max_new_tokens,
-            state.config.context_length,
-            temperature=state.config.temperature,
-            top_k=state.config.top_k,
-            top_p=state.config.top_p,
-            stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
-            sink_tokens=state.config.sink_tokens,
-            window_size=state.config.kv_window or None,
-        )
+            outcome = generate(
+                state.model,
+                state.tokenizer,
+                prompt,
+                state.config.max_new_tokens,
+                state.config.context_length,
+                temperature=state.config.temperature,
+                top_k=state.config.top_k,
+                top_p=state.config.top_p,
+                stop_id=state.tokenizer.special_token_id(EOS_TOKEN),
+                sink_tokens=state.config.sink_tokens,
+                window_size=state.config.kv_window or None,
+            )
 
-        prompt_seconds = time.perf_counter() - prompt_start
+            prompt_seconds = time.perf_counter() - prompt_start
 
-        log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
-    except KeyboardInterrupt:
-        interrupted = True
-        log.warning("Interrupted during sample generation; skipping sample.")
+            log.info("Sample after training (%.2fs):\n%s", prompt_seconds, outcome)
+        except KeyboardInterrupt:
+            interrupted = True
+            log.warning("Interrupted during sample generation; skipping sample.")
 
     notes = f"INTERRUPTED at step {step}/{state.config.steps}" if interrupted else ""
 

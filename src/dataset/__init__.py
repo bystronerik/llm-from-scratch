@@ -1,5 +1,5 @@
 from dataset.data.alpaca import load_alpaca_text
-from .cache import cache_key, cached_payload
+from .cache import cache_key, cached_payload, cached_tokens
 from .huggingface import fetch_dataset
 from .loaders import BatchSampler, build_batch_samplers
 from dataset.data.wikipedia import (
@@ -12,6 +12,7 @@ __all__ = [
     "build_batch_samplers",
     "cache_key",
     "cached_payload",
+    "cached_tokens",
     "fetch_dataset",
     "iter_wikipedia_articles",
     "load_alpaca_text",
