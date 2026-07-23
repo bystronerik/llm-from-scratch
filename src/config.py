@@ -11,7 +11,7 @@ class Config:
     # --- Model architecture ---
     vocab_size: int = 0  # set once the tokenizer is built
     embedding_dim: int = 512  # size of each token's vector (C)
-    context_length: int = 128  # how many tokens the model sees at once (T)
+    context_length: int = 256  # how many tokens the model sees at once (T)
     num_heads: int = 8  # attention heads per transformer block
     num_transformers: int = 6  # number of stacked transformer blocks
     dropout: float = (
@@ -20,9 +20,9 @@ class Config:
 
     # --- Optimization ---
     batch_size: int = 128  # how many windows per training step (B)
-    steps: int = 5000  # number of gradient updates
+    steps: int = 20000  # number of gradient updates
     learning_rate: float = 1e-3  # peak LR reached at the end of warmup
-    warmup_steps: int = 1000  # steps to linearly ramp the LR from 0 to learning_rate
+    warmup_steps: int = 500  # steps to linearly ramp the LR from 0 to learning_rate
     min_lr: float = 1e-4  # LR floor the cosine decay settles to
 
     # --- Sampling ---
@@ -43,7 +43,7 @@ class Config:
     cache_dir: str = (
         ".cache"  # root for all throwaway run output (datasets, checkpoints)
     )
-    checkpoint_interval: int = 1000  # save a checkpoint every N steps (plus at the end)
+    checkpoint_interval: int = 500  # save a checkpoint every N steps (plus at the end)
 
     run_id: str = ""  # automatically set once in build_run()
 
