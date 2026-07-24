@@ -1,0 +1,31 @@
+[Unit]
+Description=LLM training run
+After=network-online.target cloud-final.service
+Wants=network-online.target
+# The sidecars are started explicitly by the entrypoint (after scratch is mounted and the
+# run env exists), so they are Wants rather than Requires -- their failure must not stop
+# training, but their lifetime is tied to it.
+Wants=llm-checkpoint-syncer.service llm-spot-watcher.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/llm/bin/entrypoint.sh
+
+# Training runs for many hours; a start timeout would kill it mid-run.
+TimeoutStartSec=infinity
+
+# Deliberately no Restart=. A crash-looping trainer would burn GPU hours silently; the
+# orchestrator terminates and relaunches on a clean instance instead, and counts attempts
+# against max_relaunches.
+Restart=no
+
+StandardOutput=append:/var/log/llm/trainer.log
+StandardError=append:/var/log/llm/trainer.log
+
+# Needs root: mkfs/mount the instance store, and shutdown at the end.
+User=root
+WorkingDirectory=/opt/llm
+
+[Install]
+WantedBy=multi-user.target

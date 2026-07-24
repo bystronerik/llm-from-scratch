@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Rendered by Terraform. Deliberately tiny: all real logic lives in the AMI at
+# /opt/llm/bin/orchestrator.py, so it is version-controlled and reviewable rather than
+# smeared across a generated user-data blob.
+set -euo pipefail
+
+install -d -m 0755 /etc/llm
+
+cat > /etc/llm/orchestrator.json <<'ORCHESTRATOR_CONFIG_EOF'
+${config_json}
+ORCHESTRATOR_CONFIG_EOF
+
+chmod 0644 /etc/llm/orchestrator.json
+
+# The unit is enabled in the AMI but has no config until now, so it will have failed on
+# first boot. Reset the failure counter before starting, or systemd's rate limiter can
+# refuse to start it.
+systemctl daemon-reload
+systemctl reset-failed llm-orchestrator.service 2>/dev/null || true
+systemctl enable --now llm-orchestrator.service

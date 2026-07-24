@@ -1,0 +1,31 @@
+[Unit]
+Description=Sync training checkpoints to S3
+After=network-online.target
+Wants=network-online.target
+# Tied to the trainer's lifetime: when training stops, this stops too.
+PartOf=llm-trainer.service
+
+[Service]
+Type=simple
+ExecStart=/opt/llm/bin/checkpoint-syncer.sh
+
+# A dead syncer means checkpoints accumulate locally and are lost on the next
+# interruption -- the single worst silent failure in this design. Always restart it.
+Restart=always
+RestartSec=5
+
+# Generous burst limit: restarting often is far better than giving up.
+StartLimitIntervalSec=300
+StartLimitBurst=20
+
+# Give in-flight uploads time to finish on shutdown rather than truncating a 254 MB PUT.
+KillSignal=SIGTERM
+TimeoutStopSec=120
+
+StandardOutput=append:/var/log/llm/syncer.log
+StandardError=append:/var/log/llm/syncer.log
+
+User=root
+
+[Install]
+WantedBy=multi-user.target

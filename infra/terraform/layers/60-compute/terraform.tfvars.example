@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Shared provider values
+# (project, aws_region, aws_profile, extra_tags) live in ../../common.tfvars.
+
+# Bump to start a fresh run; keep to resume an existing one.
+run_id = "run-001"
+
+# Pin to a full commit SHA for a real run. resume() reads `steps` from config.py on disk,
+# not from the checkpoint, so a moving ref can change the LR schedule underneath a resume.
+# code_sha = "0ae33a6..."
+
+# Hard wall-clock cap before the orchestrator gives up and tears down.
+max_run_hours = 48
+
+# EC2 key pair name from `make keypair`. Empty launches without SSH access.
+# ssh_key_name = "llm-training"
+
+# AMI ids are normally passed by the Makefile from the Packer manifests (make ami), so you
+# do not set them here. Uncomment only to pin explicitly:
+# trainer_ami_id      = "ami-..."   # x86_64
+# orchestrator_ami_id = "ami-..."   # arm64 -- not interchangeable with the above
+
+# Optional: keep in sync with the network + iam layers if you change it.
+# trainer_instance_type = "g6e.xlarge"

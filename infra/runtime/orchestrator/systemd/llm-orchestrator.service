@@ -1,0 +1,30 @@
+[Unit]
+Description=LLM spot training orchestrator
+After=network-online.target cloud-final.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/llm/bin/orchestrator.py
+
+# This process is the only thing that will relaunch a reclaimed trainer. If it dies, the
+# run stalls silently -- so restart it unconditionally.
+Restart=always
+RestartSec=15
+
+# The AMI enables this unit before any config exists, so it fails on first boot until
+# user-data lands. Allow plenty of retries rather than tripping the rate limiter.
+StartLimitIntervalSec=600
+StartLimitBurst=30
+
+# Unbuffered, so `journalctl -f` shows output as it happens instead of in 4 KB chunks.
+Environment=PYTHONUNBUFFERED=1
+
+StandardOutput=journal
+StandardError=journal
+
+User=root
+WorkingDirectory=/opt/llm
+
+[Install]
+WantedBy=multi-user.target

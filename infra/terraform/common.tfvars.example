@@ -1,0 +1,17 @@
+# Shared values passed to EVERY layer (make wires this in as -var-file=../../common.tfvars).
+#
+#   cp common.tfvars.example common.tfvars
+#
+# common.tfvars is gitignored. It holds only the four values every layer's provider needs;
+# per-layer settings live in each layer's own terraform.tfvars (see the *.example files
+# under layers/). Shared-but-not-universal values (trainer_instance_type, log_retention_days,
+# git_repo_ssh_url) keep their defaults in each layer's variables.tf -- override them there,
+# in every layer that declares them, if you need to.
+
+# Named profile from ~/.aws/credentials. Set to "" for the default credential chain (CI).
+aws_profile = "default" # TODO: your profile
+
+# Optional overrides (defaults shown):
+# project    = "llm-training"
+# aws_region = "us-east-1"
+# extra_tags = { Owner = "erik" }

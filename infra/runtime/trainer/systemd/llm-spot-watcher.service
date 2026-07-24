@@ -1,0 +1,22 @@
+[Unit]
+Description=Watch for EC2 spot interruption notices
+After=network-online.target
+Wants=network-online.target
+PartOf=llm-trainer.service
+
+[Service]
+Type=simple
+ExecStart=/opt/llm/bin/spot-watcher.sh
+
+# The watcher exits 0 after delivering a notice -- that is success, not failure, so only
+# restart it if it dies unexpectedly while training is still going.
+Restart=on-failure
+RestartSec=5
+
+StandardOutput=append:/var/log/llm/spot-watcher.log
+StandardError=append:/var/log/llm/spot-watcher.log
+
+User=root
+
+[Install]
+WantedBy=multi-user.target

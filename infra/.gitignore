@@ -1,0 +1,24 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Real values, including your IP and AWS profile. Keep the .example committed.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+variables.hcl
+!variables.hcl.example
+
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+.terraformrc
+terraform.rc
+
+# Packer build output -- AMI ids are per-build, not source
+packer/manifest-*.json

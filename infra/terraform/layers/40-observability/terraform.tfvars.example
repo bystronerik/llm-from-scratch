@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Shared provider values
+# (project, aws_region, aws_profile, extra_tags) live in ../../common.tfvars.
+
+# Budget alert recipient. Default (example.com) is RFC 2606 reserved and undeliverable.
+alert_email = "you@example.com" # TODO: your real address
+
+# Monthly cost budget in USD. Alerts at 80% and 100%.
+monthly_budget_usd = 100
+
+# Optional: keep in sync with the storage layer if you change it.
+# log_retention_days = 30
