@@ -25,18 +25,25 @@ source "amazon-ebs" "trainer" {
   ssh_username = "ubuntu"
   ssh_timeout  = "20m"
 
-  # Build on spot: a ~15 minute build costs cents, and building on the real instance type
-  # means the CUDA smoke test validates the exact stack that will train.
-  spot_price                  = "auto"
-  spot_instance_types         = [var.trainer_build_instance_type]
+  instance_type               = var.trainer_build_instance_type
   temporary_key_pair_type     = "ed25519"
   associate_public_ip_address = true
+
+  subnet_id = var.trainer_build_subnet_id != "" ? var.trainer_build_subnet_id : null
 
   launch_block_device_mappings {
     device_name           = "/dev/sda1"
     volume_size           = var.trainer_root_volume_gb
     volume_type           = "gp3"
     delete_on_termination = true
+  }
+
+  # Snapshotting the ~120 GB root (DLAMI base + CUDA torch venv + token cache) takes well
+  # over the plugin's 30 minute default AMI wait, which surfaces as a ResourceNotReady
+  # error long after provisioning has succeeded. 60 minutes covers it.
+  aws_polling {
+    delay_seconds = 30
+    max_attempts  = 120
   }
 
   # IMDSv2 only, matching the runtime posture.

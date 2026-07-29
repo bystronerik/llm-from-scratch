@@ -49,6 +49,10 @@ REGION  := $(or $(shell grep -E '^[[:space:]]*aws_region[[:space:]]*='  $(TF_DIR
 PROJECT := $(or $(shell grep -E '^[[:space:]]*project[[:space:]]*=' $(TF_DIR)/common.tfvars 2>/dev/null | sed 's/.*=[[:space:]]*"\(.*\)"/\1/'),llm-training)
 AWS     := aws --region $(REGION) $(if $(PROFILE),--profile $(PROFILE),)
 
+# Used only to discover which AZs can host the trainer AMI build. The fleet's actual
+# candidate types live in packer/variables.pkr.hcl.
+TRAINER_TYPE := g6e.xlarge
+
 # The state bucket, read back from bootstrap. Empty until `make bootstrap` has run.
 state_bucket = $(shell terraform -chdir=$(BOOTSTRAP) output -raw state_bucket 2>/dev/null)
 
@@ -142,17 +146,53 @@ deploy-key:
 .PHONY: ami ami-trainer ami-orchestrator
 ami: ami-trainer ami-orchestrator
 
+# A Packer EC2 instance request covers one subnet, so the build lives or dies with a single
+# AZ -- and g6e capacity is patchy per AZ. Rotate through the default subnet of every AZ
+# that offers the type and stop at the first with capacity, the same strategy the
+# orchestrator uses at runtime. Anything that is not a capacity error aborts immediately:
+# another AZ will not fix it. AZ=us-east-1c pins the build to one zone.
+#
+# $${PIPESTATUS[0]} rather than `set -o pipefail`: .SHELLFLAGS above needs make >= 3.82 and
+# macOS ships 3.81, so tee's exit status would otherwise mask every failed build.
 ami-trainer:
 	@if [[ -z "$${HF_TOKEN:-}" ]] && [[ -f ../.env ]]; then \
 	  echo "Using HF_TOKEN from ../.env" ; \
 	fi
-	cd $(PACKER_DIR) && packer init . && packer build \
-	  -var project=$(PROJECT) \
-	  -var aws_region=$(REGION) \
-	  $(if $(PROFILE),-var aws_profile=$(PROFILE),) \
-	  -var hf_token="$${HF_TOKEN:-$$(grep -E '^HF_TOKEN=' ../../.env 2>/dev/null | cut -d= -f2-)}" \
-	  $(if $(CODE_SHA),-var code_sha=$(CODE_SHA),) \
-	  -only='trainer.*' .
+	cd $(PACKER_DIR) && packer init .
+	@azs="$(AZ)" ; \
+	if [[ -z $$azs ]]; then \
+	  azs=$$($(AWS) ec2 describe-instance-type-offerings --location-type availability-zone \
+	    --filters "Name=instance-type,Values=$(TRAINER_TYPE)" \
+	    --query 'InstanceTypeOfferings[].Location' --output text | tr '\t' '\n' | sort) ; \
+	fi ; \
+	if [[ -z $$azs ]]; then echo "No AZ in $(REGION) offers $(TRAINER_TYPE)." >&2 ; exit 1 ; fi ; \
+	log=$$(mktemp) ; trap 'rm -f $$log' EXIT ; built= ; \
+	for az in $$azs; do \
+	  subnet=$$($(AWS) ec2 describe-subnets \
+	    --filters "Name=default-for-az,Values=true" "Name=availability-zone,Values=$$az" \
+	    --query 'Subnets[0].SubnetId' --output text) ; \
+	  if [[ -z $$subnet || $$subnet == None ]]; then \
+	    echo "No default subnet in $$az, skipping." >&2 ; continue ; \
+	  fi ; \
+	  echo "== building trainer AMI in $$az ($$subnet) ==" ; \
+	  (cd $(PACKER_DIR) && packer build \
+	     -var project=$(PROJECT) \
+	     -var aws_region=$(REGION) \
+	     $(if $(PROFILE),-var aws_profile=$(PROFILE),) \
+	     -var hf_token="$${HF_TOKEN:-$$(grep -E '^HF_TOKEN=' ../../.env 2>/dev/null | cut -d= -f2-)}" \
+	     $(if $(CODE_SHA),-var code_sha=$(CODE_SHA),) \
+	     -var trainer_build_subnet_id=$$subnet \
+	     -only='trainer.*' .) 2>&1 | tee "$$log" ; \
+	  rc=$${PIPESTATUS[0]} ; \
+	  if [[ $$rc -eq 0 ]]; then built=1 ; break ; fi ; \
+	  if ! grep -qiE 'InsufficientInstanceCapacity|sufficient .* capacity|capacity-not-available' "$$log" ; then \
+	    echo "Build failed in $$az for a non-capacity reason; not rotating." >&2 ; exit 1 ; \
+	  fi ; \
+	  echo "No $(TRAINER_TYPE) capacity in $$az, trying the next AZ." >&2 ; \
+	done ; \
+	if [[ -z $$built ]]; then \
+	  echo "No capacity in any AZ that offers $(TRAINER_TYPE). Retry later." >&2 ; exit 1 ; \
+	fi
 	@echo "Trainer AMI: $$(jq -r '.builds[-1].artifact_id' $(PACKER_DIR)/manifest-trainer.json | cut -d: -f2)"
 
 ami-orchestrator:

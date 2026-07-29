@@ -46,6 +46,12 @@ variable "trainer_build_instance_type" {
   description = "Build on the real training type so the CUDA smoke test is meaningful."
 }
 
+variable "trainer_build_subnet_id" {
+  type        = string
+  default     = ""
+  description = "Subnet to build in. Empty lets Packer pick one in the default VPC."
+}
+
 variable "trainer_root_volume_gb" {
   type        = number
   default     = 120
